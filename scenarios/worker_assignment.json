@@ -1,0 +1,22 @@
+{
+	"name": "worker_assignment",
+	"description": "Phase 2 worker auto-assignment: place 2 rooms via direct calls, wait for workers to claim and walk to them. Pass = both workers assigned (claimed) AND both at their rooms (state = WORKING). Lair has 2 workers by default; workers self-assign on BuildController.room_placed signal, first-come-first-served.",
+	"seed": 314,
+	"max_duration_s": 8,
+	"champion": {
+		"max_hp": 100,
+		"damage": 14,
+		"move_speed": 5.0
+	},
+	"raiders": [],
+	"inputs": [
+		{"t": 0.5, "call": "BuildController.place_at_xy", "args": [-2, -3, 1], "note": "place Training near workers"},
+		{"t": 1.0, "call": "BuildController.place_at_xy", "args": [3, -3, 0], "note": "place Sleeping near workers"}
+	],
+	"pass_criteria": {
+		"champion_alive": true,
+		"rooms_placed_eq": 2,
+		"workers_assigned_eq": 2,
+		"workers_at_rooms_eq": 2
+	}
+}

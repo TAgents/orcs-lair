@@ -121,8 +121,11 @@ func _cell_in_bounds(cell: Vector2i) -> bool:
 # --- Visuals -----------------------------------------------------------------
 
 func _spawn_room_visual(grid: Vector2i, room: Room) -> Node3D:
-	var n := Node3D.new()
+	var n := PlacedRoom.new()
 	n.name = "%s_%d_%d" % [room.display_name, grid.x, grid.y]
+	n.room_type = room.type
+	n.footprint = room.footprint
+	n.grid_origin = grid
 	# Caller assigns global_position AFTER adding to the tree.
 	var mesh := MeshInstance3D.new()
 	var box := BoxMesh.new()
