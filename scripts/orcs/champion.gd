@@ -53,6 +53,7 @@ func _ready() -> void:
 	hitbox_shape.shape = hitbox_shape.shape.duplicate()
 	if hitbox_shape.shape is BoxShape3D:
 		_normal_hitbox_size = (hitbox_shape.shape as BoxShape3D).size
+	_swap_in_visual_model("res://assets/kenney_mini-dungeon/character-orc.glb", 2.2)
 
 func _physics_process(delta: float) -> void:
 	if not is_alive():
