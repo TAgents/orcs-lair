@@ -4,10 +4,11 @@ extends Node
 # author by hand for tests). Persists Economy.gold, placed rooms, and
 # champion progression (level + xp + max_hp + damage).
 #
-# Format v3:
+# Format v4:
 #   {
-#     "version": 3,
+#     "version": 4,
 #     "gold": 100,
+#     "inventory": ["iron_axe", "leather_jerkin"],
 #     "rooms": [{"x": -4, "z": -4, "type": 0}, …],
 #     "champions": [
 #       {"name": "Champion",  "level": 3, "xp": 12, "max_hp": 140, "damage": 22, "gear": ["iron_axe", "warrior_charm"]},
@@ -19,10 +20,10 @@ extends Node
 # value). On load, we unequip everything first, set the saved max_hp, then
 # re-equip — gear bonuses re-apply cleanly without double-counting.
 #
-# v1 saves (no "champions" field) and v2 saves (no "gear" field) load
-# cleanly — missing fields default to "no gear".
+# Older saves load cleanly: v1 (no "champions"), v2 (no "gear"), v3 (no
+# "inventory") all default missing fields to empty.
 
-const SAVE_FORMAT_VERSION: int = 3
+const SAVE_FORMAT_VERSION: int = 4
 
 signal saved(path: String)
 signal loaded(path: String)
@@ -84,6 +85,7 @@ func _gather_state() -> Dictionary:
 	return {
 		"version": SAVE_FORMAT_VERSION,
 		"gold": Economy.gold,
+		"inventory": Inventory.items(),
 		"rooms": rooms,
 		"champions": champs,
 	}
@@ -94,6 +96,9 @@ func _apply_state(data: Dictionary) -> void:
 		bc.clear_all()
 	Economy.reset()
 	Economy.gold = int(data.get("gold", Economy.STARTING_GOLD))
+	Inventory.clear()
+	for item_id in data.get("inventory", []):
+		Inventory.add(String(item_id))
 	if bc != null:
 		for r in data.get("rooms", []):
 			bc.place_at_xy(int(r["x"]), int(r["z"]), int(r["type"]), false)
