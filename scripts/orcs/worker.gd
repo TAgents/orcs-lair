@@ -25,6 +25,7 @@ func _ready() -> void:
 	_wander_target = _home
 	_pick_new_wander_target()
 	_subscribe_to_build_controller()
+	_swap_in_visual_model("res://assets/kenney_mini-dungeon/character-orc.glb")
 
 func assign_to(room: Node3D) -> void:
 	if assigned_room != null and is_instance_valid(assigned_room):

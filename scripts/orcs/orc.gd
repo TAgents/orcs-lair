@@ -45,3 +45,37 @@ func set_vulnerable(v: bool) -> void:
 
 func is_alive() -> bool:
 	return hp > 0.0
+
+# --- Visual model swap (runtime, interactive only) -----------------------------
+#
+# We can't reference GLB scenes from .tscn files because Godot --headless hangs
+# at scene-load when GLB textures need GPU initialization. Workaround: load the
+# GLB at runtime and replace the placeholder capsule "Mesh" child. Skipped in
+# scenario mode so headless tests stay deterministic.
+
+func _swap_in_visual_model(model_path: String) -> void:
+	if _is_scenario_mode():
+		return
+	if not ResourceLoader.exists(model_path):
+		return
+	var scene: PackedScene = load(model_path)
+	if scene == null:
+		return
+	var instance: Node = scene.instantiate()
+	if not (instance is Node3D):
+		instance.queue_free()
+		return
+	var existing_mesh: Node = get_node_or_null("Mesh")
+	var existing_dir: Node = get_node_or_null("DirIndicator")
+	if existing_mesh:
+		existing_mesh.queue_free()
+	if existing_dir:
+		existing_dir.queue_free()
+	instance.name = "Mesh"
+	add_child(instance)
+
+func _is_scenario_mode() -> bool:
+	for a in OS.get_cmdline_user_args():
+		if a.begins_with("--scenario="):
+			return true
+	return false
