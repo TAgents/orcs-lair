@@ -6,6 +6,7 @@ extends CanvasLayer
 @onready var banner: Label = $Root/Banner
 @onready var build_label: Label = $Root/BuildLabel
 @onready var gold_label: Label = $Root/GoldLabel
+@onready var level_label: Label = $Root/LevelLabel
 
 var _champion: Champion = null
 var _build_controller: BuildController = null
@@ -26,6 +27,7 @@ func _process(_delta: float) -> void:
 		hp_bar.max_value = _champion.max_hp
 		hp_bar.value = _champion.hp
 		hp_label.text = "%d / %d" % [int(_champion.hp), int(_champion.max_hp)]
+		level_label.text = "Lv %d   XP %d/%d" % [_champion.level, _champion.xp, _champion.xp_threshold()]
 
 func _find_champion() -> void:
 	var champs := get_tree().get_nodes_in_group("champions")
