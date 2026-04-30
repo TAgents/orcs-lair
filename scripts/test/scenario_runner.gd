@@ -32,10 +32,21 @@ func setup(scenario_data: Dictionary, out_path: String, lair_node: Node3D) -> vo
 
 	_apply_seed()
 	Economy.reset()
+	_trim_champions()
 	_apply_champion_overrides()
 	_replace_raiders()
 	_attach_bot()
 	_wire_signals()
+
+func _trim_champions() -> void:
+	# Default: scenarios run with the named "Champion" only. Multi-champion
+	# scenarios opt in with `"multi_champion": true` so existing tests stay
+	# stable when new champions are added to lair.tscn.
+	if bool(scenario.get("multi_champion", false)):
+		return
+	for c in _lair.get_tree().get_nodes_in_group("champions"):
+		if c.name != "Champion":
+			c.queue_free()
 
 func _apply_seed() -> void:
 	if scenario.has("seed"):
@@ -194,7 +205,18 @@ func _evaluate() -> Dictionary:
 		if Economy.gold != want:
 			ok = false
 			reasons.append("gold_eq want=%d got=%d" % [want, Economy.gold])
+	if crit.has("possessed_name_eq"):
+		var want: String = String(crit["possessed_name_eq"])
+		var got: String = _query_possessed_name()
+		if got != want:
+			ok = false
+			reasons.append("possessed_name_eq want=%s got=%s" % [want, got])
 	return {"pass": ok, "reasons": reasons}
+
+func _query_possessed_name() -> String:
+	if Game.possessed != null and is_instance_valid(Game.possessed):
+		return String(Game.possessed.name)
+	return ""
 
 func _query_rooms_placed() -> int:
 	var bc: Node = _lair.get_node_or_null("BuildController")
@@ -244,6 +266,7 @@ func _collect_results(pass_result: Dictionary, reason: String) -> Dictionary:
 		"workers_assigned": _query_workers_assigned(),
 		"workers_at_rooms": _query_workers_at_rooms(),
 		"gold": Economy.gold,
+		"possessed": _query_possessed_name(),
 	}
 
 func _write_results(results: Dictionary) -> void:

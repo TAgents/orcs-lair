@@ -51,7 +51,8 @@ Notes:
     "workers_assigned_eq": 2,      // workers with assigned_room set
     "workers_at_rooms_eq": 2,      // workers in WORKING state (arrived at room)
     "gold_gte": 5,                  // Economy.gold >= N
-    "gold_eq": 0                    // Economy.gold == N
+    "gold_eq": 0,                   // Economy.gold == N
+    "possessed_name_eq": "Champion2" // Game.possessed.name == X (or "" for none)
   }
 }
 ```
@@ -82,9 +83,14 @@ Notes:
   "rooms_placed": 0,               // unique rooms placed via BuildController
   "workers_assigned": 0,           // workers with assigned_room set
   "workers_at_rooms": 0,           // workers in WORKING state
-  "gold": 0                        // Economy.gold at scenario end
+  "gold": 0,                       // Economy.gold at scenario end
+  "possessed": ""                  // node name of Game.possessed, or "" for none
 }
 ```
+
+### Multi-champion scenarios
+
+By default, scenarios trim the lair to a single named "Champion" (Champion2 is freed at start). Pass `"multi_champion": true` to keep all champions — required for Phase 3 cycle-possession tests.
 
 ## Built-in scenarios
 
@@ -99,6 +105,8 @@ Notes:
 | `worker_assignment.json` | Phase 2 worker auto-assignment: place 2 rooms, workers self-assign and walk to them | `workers_at_rooms == 2` |
 | `economy.json` | Phase 2 Treasury gold tick (1g/s/worker) | `gold >= 5` after ~10s |
 | `build_cost.json` | Phase 2 build economy: place 2 Treasuries (80g of 100), 3rd rejected | `rooms_placed == 2`, `gold == 20` |
+| `cycle_possession.json` | Phase 3 entry: 2 Tabs cycle Champion → Champion2 | `possessed == "Champion2"` |
+| `cycle_possession_release.json` | 3 Tabs cycle through both champions, then release | `possessed == ""` |
 
 ## Determinism
 

@@ -40,12 +40,12 @@ func _apply(entry: Dictionary) -> void:
 	if entry.has("press"):
 		var a: String = entry["press"]
 		if InputMap.has_action(a):
-			Input.action_press(a)
+			_synthesise_action(a, true)
 			_held[a] = true
 	if entry.has("release"):
 		var a: String = entry["release"]
 		if InputMap.has_action(a):
-			Input.action_release(a)
+			_synthesise_action(a, false)
 			_held.erase(a)
 	if entry.has("call"):
 		# Format: "NodePath.method_name" — node path is relative to ProbeBot's parent.
@@ -66,5 +66,35 @@ func _apply(entry: Dictionary) -> void:
 
 func release_all() -> void:
 	for action in _held.keys():
-		Input.action_release(action)
+		_synthesise_action(action, false)
 	_held.clear()
+
+# Synthesises a real InputEvent so both polling (Input.is_action_pressed) and
+# event-driven handlers (_unhandled_input → event.is_action_pressed) see the
+# action. Using Input.action_press alone only updates the polled state — it
+# doesn't fire an InputEvent, so _unhandled_input never sees it.
+#
+# We pick the first InputEventKey or InputEventMouseButton bound to the action
+# from the InputMap, set its `pressed` flag, and parse it.
+func _synthesise_action(action: String, pressed: bool) -> void:
+	var events: Array = InputMap.action_get_events(action)
+	for ev in events:
+		if ev is InputEventKey:
+			var k := InputEventKey.new()
+			k.physical_keycode = ev.physical_keycode
+			k.keycode = ev.keycode
+			k.pressed = pressed
+			Input.parse_input_event(k)
+			return
+		if ev is InputEventMouseButton:
+			var m := InputEventMouseButton.new()
+			m.button_index = ev.button_index
+			m.pressed = pressed
+			Input.parse_input_event(m)
+			return
+	# Fallback: at least update the polled state so Input.is_action_pressed
+	# still works for actions with no key/mouse binding.
+	if pressed:
+		Input.action_press(action)
+	else:
+		Input.action_release(action)

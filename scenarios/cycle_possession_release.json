@@ -1,0 +1,25 @@
+{
+	"name": "cycle_possession_release",
+	"description": "Phase 3 entry: 3 Tab presses with 2 champions → cycle through both → release. End state: Game.possessed is null (empty name).",
+	"seed": 1234,
+	"max_duration_s": 3,
+	"multi_champion": true,
+	"champion": {
+		"max_hp": 100,
+		"damage": 14,
+		"move_speed": 5.0
+	},
+	"raiders": [],
+	"inputs": [
+		{"t": 0.3, "press": "possess_toggle", "note": "Tab 1 → possess Champion"},
+		{"t": 0.4, "release": "possess_toggle"},
+		{"t": 1.0, "press": "possess_toggle", "note": "Tab 2 → cycle to Champion2"},
+		{"t": 1.1, "release": "possess_toggle"},
+		{"t": 1.7, "press": "possess_toggle", "note": "Tab 3 → release (Champion2 was last)"},
+		{"t": 1.8, "release": "possess_toggle"}
+	],
+	"pass_criteria": {
+		"champion_alive": true,
+		"possessed_name_eq": ""
+	}
+}

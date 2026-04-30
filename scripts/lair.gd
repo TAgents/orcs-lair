@@ -2,19 +2,20 @@ extends Node3D
 
 const ScenarioRunnerCls: GDScript = preload("res://scripts/test/scenario_runner.gd")
 
-@onready var champion: Champion = $Champion
 @onready var raiders_root: Node3D = $Raiders
 
+var _champions: Array[Champion] = []
 var _ended: bool = false
 var _scenario_mode: bool = false
 
 func _ready() -> void:
+	_collect_champions()
+
 	if _maybe_run_scenario():
-		# Scenario mode: ScenarioRunner spawns/configures raiders and signals;
-		# we connect the same per-raider death signals after the runner has
-		# replaced them, which it does inside _wire_signals().
-		# Champion-died signal is still ours to own.
-		champion.died.connect(_on_champion_died)
+		# Scenario mode: ScenarioRunner spawns/configures raiders.
+		# Champion deaths are still ours to own (game-over when all dead).
+		for c in _champions:
+			c.died.connect(_on_champion_died)
 		_scenario_mode = true
 		return
 
@@ -25,27 +26,69 @@ func _ready() -> void:
 		for r in raiders_root.get_children():
 			r.queue_free()
 
-	champion.died.connect(_on_champion_died)
+	for c in _champions:
+		c.died.connect(_on_champion_died)
 	for r in raiders_root.get_children():
 		if r is Raider:
 			r.died.connect(_on_raider_died)
 
+func _collect_champions() -> void:
+	_champions.clear()
+	for c in get_tree().get_nodes_in_group("champions"):
+		if c is Champion:
+			_champions.append(c)
+
 func _unhandled_input(event: InputEvent) -> void:
-	if _ended or _scenario_mode:
+	# ProbeBot drives input via Input.action_press in scenarios, so this
+	# handler runs even in scenario mode — that's intentional.
+	if _ended:
 		return
-	if event.is_action_pressed("possess_toggle") and is_instance_valid(champion) and champion.is_alive():
-		Game.toggle_possession(champion)
+	if event.is_action_pressed("possess_toggle"):
+		_cycle_possession()
 	elif event.is_action_pressed("build_toggle") and Game.mode != Game.Mode.POSSESSING:
 		Game.toggle_build()
 	elif event.is_action_pressed("build_cancel") and Game.mode == Game.Mode.BUILDING:
 		Game.set_mode(Game.Mode.LAIR, null)
 
+# Tab cycles: NONE → champion[0] → champion[1] → … → champion[N-1] → NONE → ...
+# Skips dead/freed champions automatically.
+func _cycle_possession() -> void:
+	var alive: Array[Champion] = []
+	for c in _champions:
+		if is_instance_valid(c) and c.is_alive():
+			alive.append(c)
+	if alive.is_empty():
+		return
+
+	if Game.mode != Game.Mode.POSSESSING:
+		Game.set_mode(Game.Mode.POSSESSING, alive[0])
+		return
+
+	var idx := alive.find(Game.possessed)
+	if idx == -1:
+		# Currently possessing something not in the alive list — start over.
+		Game.set_mode(Game.Mode.POSSESSING, alive[0])
+		return
+	if idx == alive.size() - 1:
+		# Last champion → release.
+		Game.set_mode(Game.Mode.LAIR, null)
+	else:
+		Game.set_mode(Game.Mode.POSSESSING, alive[idx + 1])
+
 func _on_champion_died(_o: Orc) -> void:
 	if _ended:
 		return
-	_ended = true
-	if Game.possessed == champion:
+	# If the dying champion was being possessed, drop possession so the cycle
+	# can pick another one.
+	if Game.possessed != null and not is_instance_valid(Game.possessed):
 		Game.set_mode(Game.Mode.LAIR, null)
+	elif Game.possessed != null and Game.possessed is Champion and not Game.possessed.is_alive():
+		Game.set_mode(Game.Mode.LAIR, null)
+	# Game over when ALL champions are dead.
+	for c in _champions:
+		if is_instance_valid(c) and c.is_alive():
+			return
+	_ended = true
 	Game.end_game(false)
 
 func _on_raider_died(_o: Orc) -> void:
@@ -85,9 +128,9 @@ func _maybe_run_scenario() -> bool:
 	add_child(runner)
 	runner.setup(data, output_path, self)
 
-	if auto_possess or bool(data.get("auto_possess", false)):
-		# Possess the champion immediately (the bot can also do this via inputs).
-		Game.toggle_possession(champion)
+	if (auto_possess or bool(data.get("auto_possess", false))) and not _champions.is_empty():
+		# Possess the first champion immediately (the bot can also do this via inputs).
+		Game.toggle_possession(_champions[0])
 	return true
 
 func _load_scenario(path: String) -> Dictionary:
