@@ -1,0 +1,22 @@
+{
+	"name": "save_progression",
+	"description": "Save format v2: champion level/XP persist through save→reset→load. No raiders so the scenario doesn't end early. Directly call gain_xp(60) → level=2, xp=10. Save. Reset progression (level=1, xp=0). Load. Expect level=2, xp=10 restored from JSON.",
+	"seed": 444,
+	"max_duration_s": 2,
+	"champion": {
+		"max_hp": 100,
+		"damage": 18,
+		"move_speed": 5.0
+	},
+	"raiders": [],
+	"inputs": [
+		{"t": 0.3, "call": "/root/Lair/Champion.gain_xp", "args": [60], "note": "60 xp → level=2 xp=10"},
+		{"t": 0.6, "call": "/root/SaveSystem.save_to", "args": ["/tmp/orcs_lair_progress_save.json"], "note": "save"},
+		{"t": 0.9, "call": "/root/Lair/Champion.reset_progression", "note": "level=1 xp=0"},
+		{"t": 1.2, "call": "/root/SaveSystem.load_from", "args": ["/tmp/orcs_lair_progress_save.json"], "note": "load — should restore level=2 xp=10"}
+	],
+	"pass_criteria": {
+		"champion_alive": true,
+		"champion_level_eq": 2
+	}
+}

@@ -112,6 +112,7 @@ By default, scenarios trim the lair to a single named "Champion" (Champion2 is f
 | `training_bonus.json` | Phase 2 strategic payoff: Training room with worker grants champion +10 damage | `champion_damage == 28` (base 18 + 10) |
 | `charge_skill.json` | Phase 3 skill: L = charge dash with i-frames, hits enemies along path for 1.2× damage | `raiders_killed == 1`, champion HP unchanged |
 | `champion_xp.json` | Phase 4 entry: champion gains XP per kill = raider.max_hp; threshold = 50 × level | `champion_level == 2`, `champion_xp == 25` |
+| `save_progression.json` | Save format v2: persists champion level/XP through save→reset→load round-trip | `champion_level == 2` post-load |
 
 ## Determinism
 
