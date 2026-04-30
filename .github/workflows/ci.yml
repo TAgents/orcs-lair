@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GODOT_VERSION: 4.6.2-stable
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Godot binary
+        id: godot-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/godot
+          key: godot-${{ env.GODOT_VERSION }}-linux
+
+      - name: Install Godot
+        if: steps.godot-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/godot
+          curl -L -o /tmp/godot.zip \
+            "https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip"
+          unzip -j /tmp/godot.zip "Godot_v${GODOT_VERSION}_linux.x86_64" -d ~/godot
+          mv ~/godot/Godot_v${GODOT_VERSION}_linux.x86_64 ~/godot/godot
+          chmod +x ~/godot/godot
+
+      - name: Verify Godot
+        run: ~/godot/godot --version
+
+      - name: Import project (catches scene/script parse errors)
+        run: ~/godot/godot --headless --import 2>&1 | tee /tmp/import.log
+        # Fail the build if a parse error appeared in the import log even
+        # though Godot returned 0.
+      - name: Fail on import errors
+        run: |
+          if grep -E "SCRIPT ERROR|Failed to load script|Parse Error" /tmp/import.log; then
+            echo "::error::Import surfaced parse errors"
+            exit 1
+          fi
+
+      - name: Run scenarios
+        run: |
+          set -e
+          mkdir -p /tmp/results
+          for s in tutorial baseline overrun bot_smoketest slice_difficulty; do
+            echo "=== $s ==="
+            ~/godot/godot --headless ++ \
+              --scenario=res://scenarios/${s}.json \
+              --output=/tmp/results/${s}.json
+            python3 - <<EOF
+          import json, sys
+          d = json.load(open("/tmp/results/${s}.json"))
+          print(f"  pass={d['pass']} reason={d['end_reason']} dur={d['duration_s']:.2f}s "
+                f"killed={d['raiders']['killed']}/{d['raiders']['initial']} "
+                f"champion_hp={d['champion']['hp_remaining']:.0f}")
+          if not d["pass"]:
+              print(f"::error file=scenarios/${s}.json::Scenario failed: {d['pass_reasons']}")
+              sys.exit(1)
+          EOF
+          done
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scenario-results
+          path: /tmp/results/

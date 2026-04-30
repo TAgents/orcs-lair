@@ -1,0 +1,30 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/orcs/worker.gd" id="1_worker"]
+
+[sub_resource type="CapsuleShape3D" id="cap_shape"]
+height = 1.5
+radius = 0.35
+
+[sub_resource type="CapsuleMesh" id="cap_mesh"]
+height = 1.5
+radius = 0.35
+
+[sub_resource type="StandardMaterial3D" id="mat_dgreen"]
+albedo_color = Color(0.18, 0.4, 0.15, 1)
+roughness = 0.85
+
+[node name="Worker" type="CharacterBody3D" groups=["workers", "orcs"]]
+script = ExtResource("1_worker")
+max_hp = 25.0
+move_speed = 3.5
+damage = 5.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+shape = SubResource("cap_shape")
+
+[node name="Mesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.75, 0)
+mesh = SubResource("cap_mesh")
+material_override = SubResource("mat_dgreen")

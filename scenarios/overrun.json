@@ -1,0 +1,27 @@
+{
+	"name": "overrun",
+	"description": "10 raiders swarm a default champion. Expected outcome: champion dies. Pass = champion is dead at end. Useful for verifying defeat path and detecting accidental balance changes that make the champion immortal.",
+	"seed": 7,
+	"max_duration_s": 30,
+	"champion": {
+		"max_hp": 60,
+		"damage": 14,
+		"move_speed": 5.0
+	},
+	"raiders": [
+		{"position": [-4, 0, 6], "max_hp": 30, "damage": 10, "move_speed": 4.0},
+		{"position": [-2, 0, 6], "max_hp": 30, "damage": 10, "move_speed": 4.0},
+		{"position": [0, 0, 6], "max_hp": 30, "damage": 10, "move_speed": 4.0},
+		{"position": [2, 0, 6], "max_hp": 30, "damage": 10, "move_speed": 4.0},
+		{"position": [4, 0, 6], "max_hp": 30, "damage": 10, "move_speed": 4.0},
+		{"position": [-3, 0, 8], "max_hp": 30, "damage": 10, "move_speed": 4.0},
+		{"position": [-1, 0, 8], "max_hp": 30, "damage": 10, "move_speed": 4.0},
+		{"position": [1, 0, 8], "max_hp": 30, "damage": 10, "move_speed": 4.0},
+		{"position": [3, 0, 8], "max_hp": 30, "damage": 10, "move_speed": 4.0},
+		{"position": [0, 0, 9], "max_hp": 30, "damage": 10, "move_speed": 4.0}
+	],
+	"inputs": [],
+	"pass_criteria": {
+		"champion_alive": false
+	}
+}

@@ -1,0 +1,20 @@
+{
+	"name": "tutorial",
+	"description": "Smoke test: AI-controlled champion versus one weak raider. Should always pass cleanly. Cheapest scenario for CI to confirm the simulation boots and resolves.",
+	"seed": 42,
+	"max_duration_s": 30,
+	"champion": {
+		"max_hp": 60,
+		"damage": 20,
+		"move_speed": 5.0
+	},
+	"raiders": [
+		{"position": [0, 0, 6], "max_hp": 8, "damage": 2, "move_speed": 3.0}
+	],
+	"inputs": [],
+	"pass_criteria": {
+		"champion_alive": true,
+		"raiders_killed_eq": 1,
+		"max_duration_lte": 25.0
+	}
+}

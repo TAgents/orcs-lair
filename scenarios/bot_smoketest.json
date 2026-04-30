@@ -1,0 +1,23 @@
+{
+	"name": "bot_smoketest",
+	"description": "Verifies ProbeBot can drive InputMap actions without a real keyboard. No raiders; bot toggles possession twice; passes if the simulation reaches the timeout with the champion alive (i.e. nothing crashed).",
+	"seed": 1,
+	"max_duration_s": 4,
+	"champion": {
+		"max_hp": 100,
+		"damage": 14,
+		"move_speed": 5.0
+	},
+	"raiders": [],
+	"inputs": [
+		{"t": 0.5, "press": "possess_toggle", "note": "possess on"},
+		{"t": 0.6, "release": "possess_toggle"},
+		{"t": 1.5, "press": "move_forward"},
+		{"t": 2.0, "release": "move_forward"},
+		{"t": 2.5, "press": "possess_toggle", "note": "possess off"},
+		{"t": 2.6, "release": "possess_toggle"}
+	],
+	"pass_criteria": {
+		"champion_alive": true
+	}
+}
