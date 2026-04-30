@@ -22,6 +22,11 @@ func take_damage(amount: float, _source: Node = null) -> void:
 	if hp <= 0.0:
 		_die()
 
+func heal(amount: float) -> void:
+	if hp <= 0.0 or amount <= 0.0:
+		return
+	hp = min(max_hp, hp + amount)
+
 func _die() -> void:
 	died.emit(self)
 	set_physics_process(false)
