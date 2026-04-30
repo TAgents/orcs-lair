@@ -3,6 +3,10 @@ class_name Raider
 
 @export var attack_cooldown: float = 0.7
 @export var attack_range: float = 2.0
+# Gold dropped to Economy on death. Wave_director and scenarios can override
+# per-raider for tougher waves; the lair.tscn defaults stay modest so early
+# waves don't flood gold.
+@export var gold_drop: int = 10
 
 @onready var hitbox: Area3D = $Hitbox
 
@@ -51,6 +55,11 @@ func _swing() -> void:
 		_on_hitbox_body_entered(body)
 	await get_tree().create_timer(0.15).timeout
 	hitbox.monitoring = false
+
+func _die() -> void:
+	if gold_drop > 0:
+		Economy.add_gold(float(gold_drop))
+	super._die()
 
 func _on_hitbox_body_entered(body: Node) -> void:
 	if body == self:
