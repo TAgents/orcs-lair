@@ -258,7 +258,11 @@ func _face_velocity() -> void:
 	if horiz.length() < 0.05:
 		return
 	var target_yaw: float = atan2(velocity.x, velocity.z) + PI
-	rotation.y = lerp_angle(rotation.y, target_yaw, 0.25)
+	# Lower lerp = slower, more deliberate turning. Higher values felt twitchy
+	# in third-person because the camera follow reacts to body rotation,
+	# which feeds back into camera-relative input — small directional inputs
+	# became over-corrected.
+	rotation.y = lerp_angle(rotation.y, target_yaw, 0.10)
 
 func xp_threshold() -> int:
 	return XP_PER_LEVEL_BASE * level
