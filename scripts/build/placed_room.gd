@@ -12,6 +12,7 @@ class_name PlacedRoom
 # Other room types are placeholders until Phase 4 progression lands.
 
 const TREASURY_GOLD_PER_SEC: float = 1.0
+const TRAINING_DAMAGE_BONUS: float = 10.0
 
 @export var room_type: int = 0
 @export var footprint: Vector2i = Vector2i(2, 2)
@@ -21,6 +22,16 @@ var _assigned_worker: Node = null
 
 signal worker_assigned(worker: Node)
 signal worker_unassigned(worker: Node)
+
+func _ready() -> void:
+	add_to_group("placed_rooms")
+
+func is_active() -> bool:
+	# Active = has an assigned worker who's actually at the room (WORKING).
+	if not has_assigned_worker():
+		return false
+	var w: Node = get_assigned_worker()
+	return w is Worker and w.is_working()
 
 func set_assigned_worker(w: Node) -> void:
 	if _assigned_worker == w:
@@ -42,11 +53,7 @@ func has_assigned_worker() -> bool:
 # --- Per-frame effects -------------------------------------------------------
 
 func _process(delta: float) -> void:
-	if not has_assigned_worker():
-		return
-	# Worker must actually be at the room (WORKING state), not en route.
-	var w: Node = get_assigned_worker()
-	if w is Worker and not w.is_working():
+	if not is_active():
 		return
 	if room_type == Room.Type.TREASURY:
 		Economy.add_gold(TREASURY_GOLD_PER_SEC * delta)

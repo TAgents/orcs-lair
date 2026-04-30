@@ -109,6 +109,7 @@ By default, scenarios trim the lair to a single named "Champion" (Champion2 is f
 | `cycle_possession_release.json` | 3 Tabs cycle through both champions, then release | `possessed == ""` |
 | `cleave_skill.json` | Phase 3 skill: K = cleave (wider hitbox, 1.5× damage). One swing one-shots two adjacent raiders | both raiders dead from a single press |
 | `save_load.json` | Phase 2 milestone: place rooms → save to JSON → clear → load → state restored | `rooms_placed == 2`, `gold == 40` post-load |
+| `training_bonus.json` | Phase 2 strategic payoff: Training room with worker grants champion +10 damage | `champion_damage == 28` (base 18 + 10) |
 
 ## Determinism
 
