@@ -76,7 +76,7 @@ func _player_input() -> void:
 
 func _ai_step() -> void:
 	# Simple AI: hunt nearest raider when one exists, idle otherwise.
-	if _ai_target == null or not is_instance_valid(_ai_target):
+	if _ai_target == null or not is_instance_valid(_ai_target) or not _ai_target.is_alive():
 		_ai_target = _nearest("raiders")
 	if _ai_target == null:
 		velocity.x = 0.0

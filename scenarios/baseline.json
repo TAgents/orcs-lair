@@ -1,0 +1,20 @@
+{
+	"name": "baseline",
+	"description": "AI champion (modestly buffed for deterministic AI win) versus 2 raiders inside the lair. Pass = champion clears both raiders within 30s. CI regression scenario: detects breakage in AI targeting, hitbox detection, death handling, or scene spawning. Slice-default stats are too punishing for the dumb AI; see slice_difficulty.json for the fairness check at slice values.",
+	"seed": 12345,
+	"max_duration_s": 30,
+	"champion": {
+		"max_hp": 120,
+		"damage": 25,
+		"move_speed": 5.5
+	},
+	"raiders": [
+		{"position": [0, 0, 8], "max_hp": 25, "damage": 8, "move_speed": 3.8},
+		{"position": [3, 0, 7], "max_hp": 25, "damage": 8, "move_speed": 3.8}
+	],
+	"inputs": [],
+	"pass_criteria": {
+		"champion_alive": true,
+		"raiders_killed_eq": 2
+	}
+}
