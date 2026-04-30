@@ -1,0 +1,21 @@
+{
+	"name": "demolish_refund_decay",
+	"description": "Demolish refund decays past DEMOLISH_LATE_S=10s. Place a Training room (35g, 65 left) — Training has no gold/sec accrual so the refund math is clean. Wait until age ≥10s, demolish. Refund = floor(35 × 0.25) = 8g. Final gold: 100 - 35 + 8 = 73.",
+	"seed": 31,
+	"max_duration_s": 13,
+	"champion": {
+		"max_hp": 100,
+		"damage": 14,
+		"move_speed": 5.0
+	},
+	"raiders": [],
+	"inputs": [
+		{"t": 0.3, "call": "BuildController.place_at_xy", "args": [-5, 5, 1], "note": "Training (35g spent, 65 left)"},
+		{"t": 11.0, "call": "BuildController.demolish_at_xy", "args": [-5, 5], "note": "demolish at age >10s → 25% refund (8g)"}
+	],
+	"pass_criteria": {
+		"champion_alive": true,
+		"rooms_placed_eq": 0,
+		"gold_eq": 73
+	}
+}

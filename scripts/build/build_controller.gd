@@ -8,7 +8,18 @@ class_name BuildController
 const CELL_SIZE: float = 1.0
 const FLOOR_HALF_EXTENT: float = 12.0  # lair floor goes [-12, +12] on x/z
 const ROOM_HEIGHT: float = 0.35
-const DEMOLISH_REFUND_FRACTION: float = 0.5
+# Demolish refund decays with age:
+#  - Within DEMOLISH_GRACE_S of placement: GRACE_FRAC (regret window — almost full refund)
+#  - After DEMOLISH_LATE_S: LATE_FRAC (committed room, salvage value only)
+#  - Linear interp between the two.
+# Pre-decay default of 50% punished both quick mistakes and committed builds
+# equally, which made placement feel risk-free and demolition feel uniformly
+# bad. The decay rewards thoughtful placement: quick undos cost almost nothing,
+# but tearing down a productive room takes a real hit.
+const DEMOLISH_GRACE_S: float = 2.0
+const DEMOLISH_GRACE_FRAC: float = 0.9
+const DEMOLISH_LATE_S: float = 10.0
+const DEMOLISH_LATE_FRAC: float = 0.25
 
 @onready var ghost: MeshInstance3D = $Ghost
 
@@ -216,7 +227,8 @@ func demolish_room_node(room_node: Node3D) -> void:
 		return
 	var room_type: int = room_node.room_type if "room_type" in room_node else 0
 	var grid_origin: Vector2i = room_node.grid_origin if "grid_origin" in room_node else Vector2i.ZERO
-	var refund: int = int(Room.make(room_type).cost * DEMOLISH_REFUND_FRACTION)
+	var age: float = room_node.age_seconds() if room_node.has_method("age_seconds") else INF
+	var refund: int = int(Room.make(room_type).cost * _refund_fraction(age))
 	# Remove every cell that points to this node.
 	var to_remove: Array = []
 	for k in occupied:
@@ -228,6 +240,14 @@ func demolish_room_node(room_node: Node3D) -> void:
 	if refund > 0:
 		Economy.gold = Economy.gold + refund
 	room_demolished.emit(grid_origin, room_type, refund)
+
+func _refund_fraction(age_s: float) -> float:
+	if age_s <= DEMOLISH_GRACE_S:
+		return DEMOLISH_GRACE_FRAC
+	if age_s >= DEMOLISH_LATE_S:
+		return DEMOLISH_LATE_FRAC
+	var t: float = (age_s - DEMOLISH_GRACE_S) / (DEMOLISH_LATE_S - DEMOLISH_GRACE_S)
+	return lerp(DEMOLISH_GRACE_FRAC, DEMOLISH_LATE_FRAC, t)
 
 func placed_count() -> int:
 	# One placed room may occupy multiple cells; dedupe by node.

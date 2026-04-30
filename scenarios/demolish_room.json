@@ -1,6 +1,6 @@
 {
 	"name": "demolish_room",
-	"description": "Phase 2 polish: demolish a placed room → 50% gold refund. Place 2 Treasuries (40g each, 80g spent, 20g left). Demolish one (any cell of its 2x2 footprint works) → +20g refund (40 × 0.5). Final: 1 room placed, gold = 40.",
+	"description": "Demolish a freshly-placed room (within DEMOLISH_GRACE_S=2s) → 90% refund. Place 2 Treasuries (40g each, 80g spent, 20g left). Demolish T1 at age ~0.5s → +36g (40 × 0.9). Final: 1 room placed, gold = 56.",
 	"seed": 17,
 	"max_duration_s": 2,
 	"champion": {
@@ -12,11 +12,11 @@
 	"inputs": [
 		{"t": 0.3, "call": "BuildController.place_at_xy", "args": [-5, 5, 2], "note": "Treasury 1 (40g, 60 left)"},
 		{"t": 0.5, "call": "BuildController.place_at_xy", "args": [3, 5, 2], "note": "Treasury 2 (40g, 20 left)"},
-		{"t": 1.0, "call": "BuildController.demolish_at_xy", "args": [-5, 5], "note": "demolish T1 → +20g refund"}
+		{"t": 1.0, "call": "BuildController.demolish_at_xy", "args": [-5, 5], "note": "demolish T1 within grace → +36g refund"}
 	],
 	"pass_criteria": {
 		"champion_alive": true,
 		"rooms_placed_eq": 1,
-		"gold_eq": 40
+		"gold_eq": 56
 	}
 }
