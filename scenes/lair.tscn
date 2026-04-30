@@ -146,12 +146,12 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, -3)
 [node name="Raiders" type="Node3D" parent="."]
 
 [node name="Raider1" parent="Raiders" instance=ExtResource("5_raider")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 16)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 9)
 
 [node name="Raider2" parent="Raiders" instance=ExtResource("5_raider")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, 17)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 8)
 
 [node name="Raider3" parent="Raiders" instance=ExtResource("5_raider")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 17)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 8)
 
 [node name="HUD" parent="." instance=ExtResource("6_hud")]
