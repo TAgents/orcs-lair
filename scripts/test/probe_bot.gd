@@ -47,6 +47,20 @@ func _apply(entry: Dictionary) -> void:
 		if InputMap.has_action(a):
 			Input.action_release(a)
 			_held.erase(a)
+	if entry.has("call"):
+		# Format: "NodePath.method_name" — node path is relative to ProbeBot's parent.
+		var spec: String = entry["call"]
+		var dot: int = spec.rfind(".")
+		if dot > 0:
+			var node_path: String = spec.substr(0, dot)
+			var method: String = spec.substr(dot + 1)
+			var host: Node = get_parent()
+			var target: Node = host.get_node_or_null(node_path) if host else null
+			if target != null and target.has_method(method):
+				var args: Array = entry.get("args", [])
+				target.callv(method, args)
+			else:
+				push_warning("[probe] call missed: %s (target=%s method_ok=%s)" % [spec, target, target != null and target.has_method(method)])
 	if entry.has("note"):
 		print("[probe] ", entry["note"])
 

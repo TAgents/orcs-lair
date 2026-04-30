@@ -1,6 +1,6 @@
 extends Node
 
-enum Mode { LAIR, POSSESSING }
+enum Mode { LAIR, POSSESSING, BUILDING }
 
 signal mode_changed(new_mode: Mode)
 signal game_over(victory: bool)
@@ -14,6 +14,12 @@ func set_mode(new_mode: Mode, target: Node = null) -> void:
 	mode = new_mode
 	possessed = target if new_mode == Mode.POSSESSING else null
 	mode_changed.emit(mode)
+
+func toggle_build() -> void:
+	if mode == Mode.BUILDING:
+		set_mode(Mode.LAIR, null)
+	else:
+		set_mode(Mode.BUILDING, null)
 
 func toggle_possession(target: Node) -> void:
 	if mode == Mode.POSSESSING and possessed == target:

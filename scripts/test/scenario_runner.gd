@@ -165,7 +165,19 @@ func _evaluate() -> Dictionary:
 		if _t > want:
 			ok = false
 			reasons.append("max_duration_lte want<=%.2f got=%.2f" % [want, _t])
+	if crit.has("rooms_placed_eq"):
+		var want: int = int(crit["rooms_placed_eq"])
+		var got: int = _query_rooms_placed()
+		if got != want:
+			ok = false
+			reasons.append("rooms_placed_eq want=%d got=%d" % [want, got])
 	return {"pass": ok, "reasons": reasons}
+
+func _query_rooms_placed() -> int:
+	var bc: Node = _lair.get_node_or_null("BuildController")
+	if bc != null and bc.has_method("placed_count"):
+		return int(bc.placed_count())
+	return 0
 
 func _collect_results(pass_result: Dictionary, reason: String) -> Dictionary:
 	var champion_hp: float = 0.0
@@ -191,6 +203,7 @@ func _collect_results(pass_result: Dictionary, reason: String) -> Dictionary:
 			"hits_received": _hits_landed,
 		},
 		"dodges_used": _dodges_used,
+		"rooms_placed": _query_rooms_placed(),
 	}
 
 func _write_results(results: Dictionary) -> void:

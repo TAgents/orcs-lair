@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3]
+[gd_scene load_steps=21 format=3]
 
 [ext_resource type="Script" path="res://scripts/lair.gd" id="1_lair"]
 [ext_resource type="PackedScene" path="res://scenes/cameras/camera_rig.tscn" id="2_rig"]
@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" path="res://scenes/orcs/worker.tscn" id="4_worker"]
 [ext_resource type="PackedScene" path="res://scenes/raiders/raider.tscn" id="5_raider"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="6_hud"]
+[ext_resource type="PackedScene" path="res://scenes/build/build_controller.tscn" id="7_build"]
 
 [sub_resource type="ProceduralSkyMaterial" id="sky_mat"]
 sky_top_color = Color(0.12, 0.10, 0.18, 1)
@@ -153,5 +154,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 8)
 
 [node name="Raider3" parent="Raiders" instance=ExtResource("5_raider")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 8)
+
+[node name="BuildController" parent="." instance=ExtResource("7_build")]
 
 [node name="HUD" parent="." instance=ExtResource("6_hud")]

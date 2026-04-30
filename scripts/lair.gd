@@ -28,6 +28,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event.is_action_pressed("possess_toggle") and is_instance_valid(champion) and champion.is_alive():
 		Game.toggle_possession(champion)
+	elif event.is_action_pressed("build_toggle") and Game.mode != Game.Mode.POSSESSING:
+		Game.toggle_build()
+	elif event.is_action_pressed("build_cancel") and Game.mode == Game.Mode.BUILDING:
+		Game.set_mode(Game.Mode.LAIR, null)
 
 func _on_champion_died(_o: Orc) -> void:
 	if _ended:

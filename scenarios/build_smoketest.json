@@ -1,0 +1,32 @@
+{
+	"name": "build_smoketest",
+	"description": "Exercises Phase 2 build mode end-to-end: toggle in, select 3 different room types via keys, place 3 rooms via direct method call, toggle out. Pass = simulation reaches timeout, champion alive, BuildController.placed_count() == 3 (verified by call return; we use overlap-blocked placement so a 4th placement at the same grid must fail). No raiders, no combat.",
+	"seed": 99,
+	"max_duration_s": 4,
+	"champion": {
+		"max_hp": 100,
+		"damage": 14,
+		"move_speed": 5.0
+	},
+	"raiders": [],
+	"inputs": [
+		{"t": 0.3, "press": "build_toggle", "note": "enter build mode"},
+		{"t": 0.4, "release": "build_toggle"},
+		{"t": 0.7, "press": "build_select_1", "note": "Sleeping selected"},
+		{"t": 0.8, "release": "build_select_1"},
+		{"t": 1.0, "call": "BuildController.place_at_xy", "args": [-4, -4, 0], "note": "place Sleeping"},
+		{"t": 1.3, "press": "build_select_2", "note": "Training selected"},
+		{"t": 1.4, "release": "build_select_2"},
+		{"t": 1.6, "call": "BuildController.place_at_xy", "args": [2, -4, 1], "note": "place Training"},
+		{"t": 1.9, "press": "build_select_3", "note": "Treasury selected"},
+		{"t": 2.0, "release": "build_select_3"},
+		{"t": 2.2, "call": "BuildController.place_at_xy", "args": [-1, 4, 2], "note": "place Treasury"},
+		{"t": 2.6, "call": "BuildController.place_at_xy", "args": [-4, -4, 0], "note": "duplicate at same cell — should be rejected silently"},
+		{"t": 3.0, "press": "build_toggle", "note": "exit build mode"},
+		{"t": 3.1, "release": "build_toggle"}
+	],
+	"pass_criteria": {
+		"champion_alive": true,
+		"rooms_placed_eq": 3
+	}
+}
