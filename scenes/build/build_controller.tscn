@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/build/build_controller.gd" id="1_bc"]
+
+[node name="BuildController" type="Node3D"]
+script = ExtResource("1_bc")
+
+[node name="Ghost" type="MeshInstance3D" parent="."]
+visible = false

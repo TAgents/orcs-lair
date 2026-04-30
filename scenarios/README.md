@@ -37,13 +37,17 @@ Notes:
     {"t": 0.5, "press": "possess_toggle", "note": "log line"},
     {"t": 0.6, "release": "possess_toggle"},
     {"t": 1.0, "press": "move_forward"},
-    {"t": 3.0, "release": "move_forward"}
+    {"t": 3.0, "release": "move_forward"},
+    // Direct method calls bypass input — useful for mechanics not bound to keys.
+    // Path is relative to ProbeBot's parent (the lair root). Args are positional.
+    {"t": 2.0, "call": "BuildController.place_at_xy", "args": [-4, -4, 0]}
   ],
   "pass_criteria": {               // any non-empty subset
     "champion_alive": true,
     "raiders_killed_eq": 3,        // exact count
     "raiders_killed_gte": 1,       // minimum
-    "max_duration_lte": 5.0        // simulation must end within N seconds
+    "max_duration_lte": 5.0,       // simulation must end within N seconds
+    "rooms_placed_eq": 3           // BuildController.placed_count() == N
   }
 }
 ```
@@ -70,7 +74,8 @@ Notes:
     "killed": 2,
     "hits_received": 4
   },
-  "dodges_used": 0
+  "dodges_used": 0,
+  "rooms_placed": 0                // unique rooms placed via BuildController
 }
 ```
 
@@ -83,6 +88,7 @@ Notes:
 | `overrun.json` | Loss path: 10 raiders vs default champion | champion dies |
 | `bot_smoketest.json` | ProbeBot input driver test | timeout, no crash |
 | `slice_difficulty.json` | Slice fairness: 1v3 at default stats expected to fail | champion dies (intended) |
+| `build_smoketest.json` | Phase 2 build mode: enter, select 3 room types, place 3 rooms via direct call, reject duplicate, exit | `rooms_placed == 3` |
 
 ## Determinism
 

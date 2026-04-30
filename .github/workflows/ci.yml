@@ -50,7 +50,7 @@ jobs:
         run: |
           set -e
           mkdir -p /tmp/results
-          for s in tutorial baseline overrun bot_smoketest slice_difficulty; do
+          for s in tutorial baseline overrun bot_smoketest slice_difficulty build_smoketest; do
             echo "=== $s ==="
             ~/godot/godot --headless ++ \
               --scenario=res://scenarios/${s}.json \
