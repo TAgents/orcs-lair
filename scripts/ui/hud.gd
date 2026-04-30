@@ -8,6 +8,7 @@ extends CanvasLayer
 @onready var gold_label: Label = $Root/GoldLabel
 @onready var level_label: Label = $Root/LevelLabel
 @onready var skills_label: Label = $Root/SkillsLabel
+@onready var wave_label: Label = $Root/WaveLabel
 
 var _champion: Champion = null
 var _build_controller: BuildController = null
@@ -22,6 +23,7 @@ func _ready() -> void:
 	_refresh_gold()
 	_find_champion()
 	_find_build_controller()
+	_find_wave_director()
 
 func _process(_delta: float) -> void:
 	# HP / level / XP always reflect the *named* champion (first one — Champion2
@@ -57,6 +59,19 @@ func _find_champion() -> void:
 	var champs := get_tree().get_nodes_in_group("champions")
 	if champs.size() > 0 and champs[0] is Champion:
 		_champion = champs[0]
+
+func _find_wave_director() -> void:
+	var lair: Node = get_parent()
+	if lair == null:
+		return
+	var wd: Node = lair.get_node_or_null("WaveDirector")
+	if wd == null:
+		return
+	wd.wave_started.connect(_on_wave_started)
+
+func _on_wave_started(wave_idx: int, total: int) -> void:
+	wave_label.visible = true
+	wave_label.text = "Wave %d/%d" % [wave_idx + 1, total]
 
 func _find_build_controller() -> void:
 	var bc: Node = get_tree().get_first_node_in_group("build_controllers")
