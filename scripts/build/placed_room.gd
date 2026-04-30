@@ -4,6 +4,14 @@ class_name PlacedRoom
 # A placed room in the world. Tracks the room type, footprint, and a single
 # assigned worker (capacity 1 for now). Workers self-assign on placement;
 # UI-driven reassignment is a future PR.
+#
+# Per-tick effects (Phase 2 economy slice):
+#   TREASURY  : +TREASURY_GOLD_PER_SEC per assigned worker, accumulated to
+#               Economy.gold via fractional add (so 1g/s shows up cleanly
+#               even at 60Hz physics ticks).
+# Other room types are placeholders until Phase 4 progression lands.
+
+const TREASURY_GOLD_PER_SEC: float = 1.0
 
 @export var room_type: int = 0
 @export var footprint: Vector2i = Vector2i(2, 2)
@@ -30,3 +38,15 @@ func get_assigned_worker() -> Node:
 
 func has_assigned_worker() -> bool:
 	return get_assigned_worker() != null
+
+# --- Per-frame effects -------------------------------------------------------
+
+func _process(delta: float) -> void:
+	if not has_assigned_worker():
+		return
+	# Worker must actually be at the room (WORKING state), not en route.
+	var w: Node = get_assigned_worker()
+	if w is Worker and not w.is_working():
+		return
+	if room_type == Room.Type.TREASURY:
+		Economy.add_gold(TREASURY_GOLD_PER_SEC * delta)

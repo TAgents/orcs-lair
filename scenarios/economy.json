@@ -1,0 +1,21 @@
+{
+	"name": "economy",
+	"description": "Phase 2 economy: place a Treasury (room_type=2), worker auto-assigns and walks to it (~2-3s), Treasury then ticks +1 gold/sec per assigned worker. Pass = at least 5 gold accumulated by t=10s. Tolerates worker travel time and per-frame fractional accumulation.",
+	"seed": 271,
+	"max_duration_s": 10,
+	"champion": {
+		"max_hp": 100,
+		"damage": 14,
+		"move_speed": 5.0
+	},
+	"raiders": [],
+	"inputs": [
+		{"t": 0.5, "call": "BuildController.place_at_xy", "args": [-2, -3, 2], "note": "place Treasury, worker should walk over"}
+	],
+	"pass_criteria": {
+		"champion_alive": true,
+		"rooms_placed_eq": 1,
+		"workers_at_rooms_eq": 1,
+		"gold_gte": 5
+	}
+}

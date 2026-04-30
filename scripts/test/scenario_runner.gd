@@ -31,6 +31,7 @@ func setup(scenario_data: Dictionary, out_path: String, lair_node: Node3D) -> vo
 	max_duration_s = float(scenario.get("max_duration_s", 60.0))
 
 	_apply_seed()
+	Economy.reset()
 	_apply_champion_overrides()
 	_replace_raiders()
 	_attach_bot()
@@ -183,6 +184,16 @@ func _evaluate() -> Dictionary:
 		if got != want:
 			ok = false
 			reasons.append("workers_at_rooms_eq want=%d got=%d" % [want, got])
+	if crit.has("gold_gte"):
+		var want: int = int(crit["gold_gte"])
+		if Economy.gold < want:
+			ok = false
+			reasons.append("gold_gte want>=%d got=%d" % [want, Economy.gold])
+	if crit.has("gold_eq"):
+		var want: int = int(crit["gold_eq"])
+		if Economy.gold != want:
+			ok = false
+			reasons.append("gold_eq want=%d got=%d" % [want, Economy.gold])
 	return {"pass": ok, "reasons": reasons}
 
 func _query_rooms_placed() -> int:
@@ -199,10 +210,9 @@ func _query_workers_assigned() -> int:
 	return n
 
 func _query_workers_at_rooms() -> int:
-	# Worker is "at" its room if state == WORKING (Worker.State.WORKING == 2).
 	var n: int = 0
 	for w in _lair.get_tree().get_nodes_in_group("workers"):
-		if "_state" in w and w._state == 2:
+		if w is Worker and w.is_working():
 			n += 1
 	return n
 
@@ -233,6 +243,7 @@ func _collect_results(pass_result: Dictionary, reason: String) -> Dictionary:
 		"rooms_placed": _query_rooms_placed(),
 		"workers_assigned": _query_workers_assigned(),
 		"workers_at_rooms": _query_workers_at_rooms(),
+		"gold": Economy.gold,
 	}
 
 func _write_results(results: Dictionary) -> void:

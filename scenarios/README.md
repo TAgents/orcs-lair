@@ -49,7 +49,9 @@ Notes:
     "max_duration_lte": 5.0,       // simulation must end within N seconds
     "rooms_placed_eq": 3,          // BuildController.placed_count() == N
     "workers_assigned_eq": 2,      // workers with assigned_room set
-    "workers_at_rooms_eq": 2       // workers in WORKING state (arrived at room)
+    "workers_at_rooms_eq": 2,      // workers in WORKING state (arrived at room)
+    "gold_gte": 5,                  // Economy.gold >= N
+    "gold_eq": 0                    // Economy.gold == N
   }
 }
 ```
@@ -79,7 +81,8 @@ Notes:
   "dodges_used": 0,
   "rooms_placed": 0,               // unique rooms placed via BuildController
   "workers_assigned": 0,           // workers with assigned_room set
-  "workers_at_rooms": 0            // workers in WORKING state
+  "workers_at_rooms": 0,           // workers in WORKING state
+  "gold": 0                        // Economy.gold at scenario end
 }
 ```
 
@@ -94,6 +97,7 @@ Notes:
 | `slice_difficulty.json` | Slice fairness: 1v3 at default stats expected to fail | champion dies (intended) |
 | `build_smoketest.json` | Phase 2 build mode: enter, select 3 room types, place 3 rooms via direct call, reject duplicate, exit | `rooms_placed == 3` |
 | `worker_assignment.json` | Phase 2 worker auto-assignment: place 2 rooms, workers self-assign and walk to them | `workers_at_rooms == 2` |
+| `economy.json` | Phase 2 Treasury gold tick (1g/s/worker) | `gold >= 5` after ~10s |
 
 ## Determinism
 

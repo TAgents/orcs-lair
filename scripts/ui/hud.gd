@@ -5,6 +5,7 @@ extends CanvasLayer
 @onready var hp_label: Label = $Root/HPBar/HPLabel
 @onready var banner: Label = $Root/Banner
 @onready var build_label: Label = $Root/BuildLabel
+@onready var gold_label: Label = $Root/GoldLabel
 
 var _champion: Champion = null
 var _build_controller: BuildController = null
@@ -12,9 +13,11 @@ var _build_controller: BuildController = null
 func _ready() -> void:
 	Game.mode_changed.connect(_on_mode_changed)
 	Game.game_over.connect(_on_game_over)
+	Economy.gold_changed.connect(_on_gold_changed)
 	banner.visible = false
 	build_label.visible = false
 	_refresh_mode()
+	_refresh_gold()
 	_find_champion()
 	_find_build_controller()
 
@@ -68,3 +71,9 @@ func _refresh_build_label() -> void:
 func _on_game_over(victory: bool) -> void:
 	banner.visible = true
 	banner.text = "LAIR DEFENDED" if victory else "LAIR FALLEN"
+
+func _on_gold_changed(_amount: int) -> void:
+	_refresh_gold()
+
+func _refresh_gold() -> void:
+	gold_label.text = "Gold: %d" % Economy.gold
