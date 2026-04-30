@@ -1,6 +1,6 @@
 {
 	"name": "worker_assignment",
-	"description": "Phase 2 worker auto-assignment: place 2 rooms via direct calls, wait for workers to claim and walk to them. Pass = both workers assigned (claimed) AND both at their rooms (state = WORKING). Lair has 2 workers by default; workers self-assign on BuildController.room_placed signal, first-come-first-served.",
+	"description": "Phase 2 worker auto-assignment: place 2 rooms via direct calls, wait for workers to claim and walk to them. Pass = both workers assigned (claimed) AND both at their rooms (state = WORKING). Lair has 2 workers by default; workers self-assign on BuildController.room_placed signal, first-come-first-served. Starts with 100 gold; Training (35g) + Sleeping (25g) = 60g spent → gold ends at 40 (no Treasury so no income).",
 	"seed": 314,
 	"max_duration_s": 8,
 	"champion": {
@@ -18,6 +18,6 @@
 		"rooms_placed_eq": 2,
 		"workers_assigned_eq": 2,
 		"workers_at_rooms_eq": 2,
-		"gold_eq": 0
+		"gold_eq": 40
 	}
 }

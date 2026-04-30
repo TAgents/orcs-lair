@@ -66,7 +66,12 @@ func _refresh_build_label() -> void:
 	if _build_controller == null:
 		return
 	var room := Room.make(_build_controller.current_type)
-	build_label.text = "Selected: %s   [1 Sleeping · 2 Training · 3 Treasury · LMB place]" % room.display_name
+	build_label.text = "Selected: %s (%dg)   [1 Sleeping (%dg) · 2 Training (%dg) · 3 Treasury (%dg) · LMB place]" % [
+		room.display_name, room.cost,
+		Room.make(Room.Type.SLEEPING).cost,
+		Room.make(Room.Type.TRAINING).cost,
+		Room.make(Room.Type.TREASURY).cost,
+	]
 
 func _on_game_over(victory: bool) -> void:
 	banner.visible = true
