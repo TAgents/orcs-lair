@@ -7,6 +7,7 @@ class_name BuildController
 
 const CELL_SIZE: float = 1.0
 const FLOOR_HALF_EXTENT: float = 12.0  # lair floor goes [-12, +12] on x/z
+const ROOM_HEIGHT: float = 0.35
 
 @onready var ghost: MeshInstance3D = $Ghost
 
@@ -69,7 +70,7 @@ func _select_type(t: int) -> void:
 func _apply_visual_for_type() -> void:
 	var room: Room = Room.make(current_type)
 	var box: BoxMesh = BoxMesh.new()
-	box.size = Vector3(room.footprint.x * CELL_SIZE, 0.15, room.footprint.y * CELL_SIZE)
+	box.size = Vector3(room.footprint.x * CELL_SIZE, ROOM_HEIGHT, room.footprint.y * CELL_SIZE)
 	ghost.mesh = box
 	# Material is updated each frame to flash valid/invalid; color tinted from room.
 
@@ -101,7 +102,7 @@ func _world_to_grid(world: Vector3) -> Vector2i:
 func _grid_to_world_center(grid: Vector2i, footprint: Vector2i) -> Vector3:
 	var cx: float = (grid.x + footprint.x * 0.5) * CELL_SIZE
 	var cz: float = (grid.y + footprint.y * 0.5) * CELL_SIZE
-	return Vector3(cx, 0.05, cz)
+	return Vector3(cx, ROOM_HEIGHT * 0.5, cz)
 
 func _can_place(grid: Vector2i, footprint: Vector2i) -> bool:
 	for dx in footprint.x:
@@ -125,11 +126,14 @@ func _spawn_room_visual(grid: Vector2i, room: Room) -> Node3D:
 	# Caller assigns global_position AFTER adding to the tree.
 	var mesh := MeshInstance3D.new()
 	var box := BoxMesh.new()
-	box.size = Vector3(room.footprint.x * CELL_SIZE, 0.15, room.footprint.y * CELL_SIZE)
+	box.size = Vector3(room.footprint.x * CELL_SIZE, ROOM_HEIGHT, room.footprint.y * CELL_SIZE)
 	mesh.mesh = box
 	var mat := StandardMaterial3D.new()
 	mat.albedo_color = room.color
-	mat.roughness = 0.7
+	mat.roughness = 0.6
+	mat.emission_enabled = true
+	mat.emission = room.color
+	mat.emission_energy_multiplier = 0.25
 	mesh.material_override = mat
 	n.add_child(mesh)
 	return n
