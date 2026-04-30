@@ -14,6 +14,7 @@ var max_duration_s: float = 60.0
 
 var _t: float = 0.0
 var _ended: bool = false
+var _finish_scheduled: bool = false
 var _victory: bool = false
 var _hits_landed: int = 0
 var _hits_taken: int = 0
@@ -123,14 +124,22 @@ func _physics_process(delta: float) -> void:
 		_finish(false, "timeout")
 
 func _on_champion_died(_o) -> void:
+	if _finish_scheduled:
+		return
 	_victory = false
-	_finish(false, "champion_dead")
+	_finish_scheduled = true
+	_finish.call_deferred(false, "champion_dead")
 
 func _on_raider_died(_o) -> void:
 	_raiders_killed += 1
-	if _initial_raider_count > 0 and _raiders_killed >= _initial_raider_count:
+	if _initial_raider_count > 0 and _raiders_killed >= _initial_raider_count and not _finish_scheduled:
 		_victory = true
-		_finish(true, "all_raiders_dead")
+		# Deferred so any further processing within the same frame's signal
+		# chain (e.g. champion's post-take_damage kill-credit) completes
+		# before we snapshot the result. Without this, multi-kill swings
+		# under-report XP because _collect_results runs mid-iteration.
+		_finish_scheduled = true
+		_finish.call_deferred(true, "all_raiders_dead")
 
 func _on_raider_damaged(_o, _amount: float) -> void:
 	_hits_landed += 1
@@ -217,7 +226,29 @@ func _evaluate() -> Dictionary:
 		if absf(got - want) > 0.001:
 			ok = false
 			reasons.append("champion_damage_eq want=%.1f got=%.1f" % [want, got])
+	if crit.has("champion_level_eq"):
+		var want: int = int(crit["champion_level_eq"])
+		var got: int = _query_champion_level()
+		if got != want:
+			ok = false
+			reasons.append("champion_level_eq want=%d got=%d" % [want, got])
+	if crit.has("champion_level_gte"):
+		var want: int = int(crit["champion_level_gte"])
+		var got: int = _query_champion_level()
+		if got < want:
+			ok = false
+			reasons.append("champion_level_gte want>=%d got=%d" % [want, got])
 	return {"pass": ok, "reasons": reasons}
+
+func _query_champion_level() -> int:
+	if _champion != null and is_instance_valid(_champion) and "level" in _champion:
+		return int(_champion.level)
+	return 0
+
+func _query_champion_xp() -> int:
+	if _champion != null and is_instance_valid(_champion) and "xp" in _champion:
+		return int(_champion.xp)
+	return 0
 
 func _query_champion_damage() -> float:
 	if _champion != null and is_instance_valid(_champion) and _champion.has_method("effective_damage"):
@@ -279,6 +310,8 @@ func _collect_results(pass_result: Dictionary, reason: String) -> Dictionary:
 		"gold": Economy.gold,
 		"possessed": _query_possessed_name(),
 		"champion_damage": _query_champion_damage(),
+		"champion_level": _query_champion_level(),
+		"champion_xp": _query_champion_xp(),
 	}
 
 func _write_results(results: Dictionary) -> void:

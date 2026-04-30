@@ -1,0 +1,22 @@
+{
+	"name": "champion_xp",
+	"description": "Phase 4 entry: champion gains XP equal to slain raider's max_hp. Threshold = 50 × current level. AI champion (buffed for the kills) clears 3 raiders worth 25 hp each = 75 xp total → level 2 (50 xp threshold) with 25 leftover xp. Verify level == 2 and xp == 25.",
+	"seed": 7777,
+	"max_duration_s": 15,
+	"champion": {
+		"max_hp": 200,
+		"damage": 50,
+		"move_speed": 6.0
+	},
+	"raiders": [
+		{"position": [0, 0, -3], "max_hp": 25, "damage": 5, "move_speed": 3.0},
+		{"position": [-2, 0, -4], "max_hp": 25, "damage": 5, "move_speed": 3.0},
+		{"position": [2, 0, -4], "max_hp": 25, "damage": 5, "move_speed": 3.0}
+	],
+	"inputs": [],
+	"pass_criteria": {
+		"champion_alive": true,
+		"raiders_killed_eq": 3,
+		"champion_level_eq": 2
+	}
+}

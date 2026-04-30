@@ -16,6 +16,17 @@ class_name Champion
 @onready var hitbox: Area3D = $Hitbox
 @onready var hitbox_shape: CollisionShape3D = $Hitbox/CollisionShape3D
 
+# RPG progression. XP threshold per level: 50 × current level.
+# Level-up grants +20 max_hp, +2 base damage, and a full heal.
+@export var level: int = 1
+@export var xp: int = 0
+const XP_PER_LEVEL_BASE: int = 50
+const LEVEL_UP_HP_BONUS: int = 20
+const LEVEL_UP_DAMAGE_BONUS: int = 2
+
+signal xp_gained(new_xp: int, threshold: int)
+signal leveled_up(new_level: int)
+
 var _cleave_timer: float = 0.0
 var _normal_hitbox_size: Vector3 = Vector3.ZERO
 var _cleave_active: bool = false
@@ -175,15 +186,18 @@ func _on_hitbox_body_entered(body: Node) -> void:
 	if body == self:
 		return
 	if body is Orc and body.faction != faction:
+		var was_alive: bool = body.is_alive()
 		if _charge_active:
 			# Charge tracks per-body to avoid multi-hit on same enemy.
 			if _charge_already_hit.has(body):
 				return
 			_charge_already_hit[body] = true
 			body.take_damage(effective_damage() * charge_damage_mult, self)
-			return
-		var dmg: float = effective_damage() * (cleave_damage_mult if _cleave_active else 1.0)
-		body.take_damage(dmg, self)
+		else:
+			var dmg: float = effective_damage() * (cleave_damage_mult if _cleave_active else 1.0)
+			body.take_damage(dmg, self)
+		if was_alive and not body.is_alive():
+			gain_xp(int(body.max_hp))
 
 # Charge: dash forward (in input direction or current facing) at charge_speed
 # for charge_duration seconds. Invulnerable, hits each enemy along the path
@@ -245,6 +259,25 @@ func _face_velocity() -> void:
 		return
 	var target_yaw: float = atan2(velocity.x, velocity.z) + PI
 	rotation.y = lerp_angle(rotation.y, target_yaw, 0.25)
+
+func xp_threshold() -> int:
+	return XP_PER_LEVEL_BASE * level
+
+func gain_xp(amount: int) -> void:
+	if amount <= 0:
+		return
+	xp += amount
+	while xp >= xp_threshold():
+		xp -= xp_threshold()
+		_level_up()
+	xp_gained.emit(xp, xp_threshold())
+
+func _level_up() -> void:
+	level += 1
+	max_hp += float(LEVEL_UP_HP_BONUS)
+	damage += float(LEVEL_UP_DAMAGE_BONUS)
+	hp = max_hp  # full heal on level-up
+	leveled_up.emit(level)
 
 func _nearest(group: String) -> Node3D:
 	var best: Node3D = null
