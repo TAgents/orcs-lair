@@ -1,0 +1,22 @@
+{
+	"name": "build_cost",
+	"description": "Phase 2 build economy: with starting gold 100 and Treasury cost 40, place 2 Treasuries (80g spent, 20g left), then attempt a 3rd which costs 40 — should be rejected (insufficient funds). Pass = exactly 2 rooms placed, gold == 20.",
+	"seed": 991,
+	"max_duration_s": 1.5,
+	"champion": {
+		"max_hp": 100,
+		"damage": 14,
+		"move_speed": 5.0
+	},
+	"raiders": [],
+	"inputs": [
+		{"t": 0.5, "call": "BuildController.place_at_xy", "args": [-5, 6, 2], "note": "Treasury 1 placed far from workers (40g, 60 left)"},
+		{"t": 0.7, "call": "BuildController.place_at_xy", "args": [3, 6, 2], "note": "Treasury 2 placed far from workers (40g, 20 left)"},
+		{"t": 0.9, "call": "BuildController.place_at_xy", "args": [-1, 6, 2], "note": "Treasury 3 — should be rejected (need 40, have 20)"}
+	],
+	"pass_criteria": {
+		"champion_alive": true,
+		"rooms_placed_eq": 2,
+		"gold_eq": 20
+	}
+}

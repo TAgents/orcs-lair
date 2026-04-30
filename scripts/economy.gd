@@ -1,11 +1,15 @@
 extends Node
 
 # Lair-wide economy. Gold accumulates from Treasury rooms with assigned
-# workers. Future resources (food, recruits) live here too.
+# workers, deducted by room placements. Future resources (food, recruits)
+# live here too.
+
+const STARTING_GOLD: int = 100
 
 signal gold_changed(new_amount: int)
+signal spend_blocked(needed: int, have: int, reason: String)
 
-var gold: int = 0:
+var gold: int = STARTING_GOLD:
 	set(value):
 		if value == gold:
 			return
@@ -30,5 +34,17 @@ func add_gold(amount: float) -> void:
 		gold = gold + whole
 
 func reset() -> void:
-	gold = 0
+	gold = STARTING_GOLD
 	_gold_accum = 0.0
+
+func can_afford(amount: int) -> bool:
+	return gold >= amount
+
+func spend(amount: int, reason: String = "") -> bool:
+	if amount < 0:
+		return false
+	if amount > gold:
+		spend_blocked.emit(amount, gold, reason)
+		return false
+	gold = gold - amount
+	return true

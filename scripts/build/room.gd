@@ -9,6 +9,7 @@ enum Type { SLEEPING, TRAINING, TREASURY }
 @export var footprint: Vector2i = Vector2i(2, 2)
 @export var color: Color = Color.WHITE
 @export var display_name: String = ""
+@export var cost: int = 0
 
 static func make(t: Type) -> Room:
 	var r := Room.new()
@@ -17,10 +18,13 @@ static func make(t: Type) -> Room:
 		Type.SLEEPING:
 			r.display_name = "Sleeping"
 			r.color = Color(0.35, 0.45, 0.85)
+			r.cost = 25
 		Type.TRAINING:
 			r.display_name = "Training"
 			r.color = Color(0.85, 0.50, 0.20)
+			r.cost = 35
 		Type.TREASURY:
 			r.display_name = "Treasury"
 			r.color = Color(0.85, 0.75, 0.25)
+			r.cost = 40
 	return r

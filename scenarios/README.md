@@ -98,6 +98,7 @@ Notes:
 | `build_smoketest.json` | Phase 2 build mode: enter, select 3 room types, place 3 rooms via direct call, reject duplicate, exit | `rooms_placed == 3` |
 | `worker_assignment.json` | Phase 2 worker auto-assignment: place 2 rooms, workers self-assign and walk to them | `workers_at_rooms == 2` |
 | `economy.json` | Phase 2 Treasury gold tick (1g/s/worker) | `gold >= 5` after ~10s |
+| `build_cost.json` | Phase 2 build economy: place 2 Treasuries (80g of 100), 3rd rejected | `rooms_placed == 2`, `gold == 20` |
 
 ## Determinism
 

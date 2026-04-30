@@ -48,7 +48,8 @@ func _process(_delta: float) -> void:
 	var grid: Vector2i = _world_to_grid(hit)
 	var room: Room = Room.make(current_type)
 	ghost.global_position = _grid_to_world_center(grid, room.footprint)
-	_ghost_mat.albedo_color = _ghost_color(_can_place(grid, room.footprint), room.color)
+	var placeable: bool = _can_place(grid, room.footprint) and Economy.can_afford(room.cost)
+	_ghost_mat.albedo_color = _ghost_color(placeable, room.color)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("build_select_1"):
@@ -81,6 +82,8 @@ func _try_place() -> void:
 	var grid: Vector2i = _world_to_grid(hit)
 	var room: Room = Room.make(current_type)
 	if not _can_place(grid, room.footprint):
+		return
+	if not Economy.spend(room.cost, "place_%s" % room.display_name):
 		return
 	var node: Node3D = _spawn_room_visual(grid, room)
 	rooms_root.add_child(node)
@@ -172,8 +175,9 @@ func place_at_grid(grid: Vector2i, room_type: int = -1) -> bool:
 	if room_type >= 0:
 		current_type = room_type
 	var room := Room.make(current_type)
-	var ok := _can_place(grid, room.footprint)
+	var ok := _can_place(grid, room.footprint) and Economy.can_afford(room.cost)
 	if ok:
+		Economy.spend(room.cost, "place_%s" % room.display_name)
 		var node := _spawn_room_visual(grid, room)
 		rooms_root.add_child(node)
 		node.global_position = _grid_to_world_center(grid, room.footprint)
