@@ -5,8 +5,16 @@ class_name Champion
 @export var dodge_duration: float = 0.3
 @export var attack_cooldown: float = 0.5
 @export var attack_range: float = 2.2
+@export var cleave_cooldown: float = 1.5
+@export var cleave_damage_mult: float = 1.5
+@export var cleave_size: Vector3 = Vector3(3.5, 1.4, 2.5)
 
 @onready var hitbox: Area3D = $Hitbox
+@onready var hitbox_shape: CollisionShape3D = $Hitbox/CollisionShape3D
+
+var _cleave_timer: float = 0.0
+var _normal_hitbox_size: Vector3 = Vector3.ZERO
+var _cleave_active: bool = false
 
 var _attack_timer: float = 0.0
 var _dodge_timer: float = 0.0
@@ -20,12 +28,18 @@ func _ready() -> void:
 	hitbox.monitoring = false
 	hitbox.body_entered.connect(_on_hitbox_body_entered)
 	hitbox.area_entered.connect(_on_hitbox_area_entered)
+	# .tscn shapes are shared between scene instances by default; duplicate so
+	# cleave's temporary resize on one champion doesn't bleed into the other.
+	hitbox_shape.shape = hitbox_shape.shape.duplicate()
+	if hitbox_shape.shape is BoxShape3D:
+		_normal_hitbox_size = (hitbox_shape.shape as BoxShape3D).size
 
 func _physics_process(delta: float) -> void:
 	if not is_alive():
 		return
 
 	_attack_timer = max(0.0, _attack_timer - delta)
+	_cleave_timer = max(0.0, _cleave_timer - delta)
 	if _dodge_timer > 0.0:
 		_dodge_timer -= delta
 		set_vulnerable(false)
@@ -74,6 +88,9 @@ func _player_input() -> void:
 	if Input.is_action_just_pressed("attack") and _attack_timer <= 0.0:
 		_swing()
 
+	if Input.is_action_just_pressed("skill_cleave") and _cleave_timer <= 0.0 and _attack_timer <= 0.0:
+		_cleave()
+
 func _ai_step() -> void:
 	# Simple AI: hunt nearest raider when one exists, idle otherwise.
 	if _ai_target == null or not is_instance_valid(_ai_target) or not _ai_target.is_alive():
@@ -103,11 +120,34 @@ func _swing() -> void:
 	await get_tree().create_timer(0.12).timeout
 	hitbox.monitoring = false
 
+# Cleave: wider hitbox + 1.5x damage, costs the regular attack cooldown plus
+# a longer cleave cooldown. Hits every non-faction Orc in the expanded box,
+# not just the first.
+func _cleave() -> void:
+	_attack_timer = attack_cooldown
+	_cleave_timer = cleave_cooldown
+	_cleave_active = true
+	var box: BoxShape3D = hitbox_shape.shape as BoxShape3D
+	if box != null:
+		box.size = cleave_size
+	hitbox.monitoring = true
+	# Snap-check anything already overlapping. body_entered fires for the rest
+	# during the active window — _cleave_active routes both paths through the
+	# multiplier.
+	for body in hitbox.get_overlapping_bodies():
+		_on_hitbox_body_entered(body)
+	await get_tree().create_timer(0.20).timeout
+	hitbox.monitoring = false
+	_cleave_active = false
+	if box != null and _normal_hitbox_size != Vector3.ZERO:
+		box.size = _normal_hitbox_size
+
 func _on_hitbox_body_entered(body: Node) -> void:
 	if body == self:
 		return
 	if body is Orc and body.faction != faction:
-		body.take_damage(damage, self)
+		var dmg: float = damage * (cleave_damage_mult if _cleave_active else 1.0)
+		body.take_damage(dmg, self)
 
 func _on_hitbox_area_entered(_area: Area3D) -> void:
 	pass

@@ -1,0 +1,25 @@
+{
+	"name": "cleave_skill",
+	"description": "Phase 3 skill test: champion is possessed, holds position, raiders walk in side-by-side, single Cleave (K) one-shots both at 1.5x damage. Pass = both raiders dead, champion still alive. Default champion damage 18 → cleave 27 vs 25 hp raiders = 1-shot kill.",
+	"seed": 555,
+	"max_duration_s": 4,
+	"champion": {
+		"max_hp": 100,
+		"damage": 18,
+		"move_speed": 5.0
+	},
+	"raiders": [
+		{"position": [0, 0, -3], "max_hp": 25, "damage": 8, "move_speed": 3.0},
+		{"position": [1, 0, -3], "max_hp": 25, "damage": 8, "move_speed": 3.0}
+	],
+	"inputs": [
+		{"t": 0.2, "press": "possess_toggle", "note": "possess Champion (AI off, no auto-swing)"},
+		{"t": 0.3, "release": "possess_toggle"},
+		{"t": 1.5, "press": "skill_cleave", "note": "raiders should be in front by now; cleave hits both"},
+		{"t": 1.7, "release": "skill_cleave"}
+	],
+	"pass_criteria": {
+		"champion_alive": true,
+		"raiders_killed_eq": 2
+	}
+}
