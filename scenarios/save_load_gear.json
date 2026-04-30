@@ -1,0 +1,23 @@
+{
+	"name": "save_load_gear",
+	"description": "Save format v3: champion equipped gear persists through save → unequip → load. Equip iron_axe (+12 dmg) and warrior_charm (+3 dmg, +5 hp). Save. unequip_all → effective_damage drops to 14, max_hp to 80. Load → re-equips both items, effective_damage back to 14+12+3 = 29.",
+	"seed": 555,
+	"max_duration_s": 3,
+	"champion": {
+		"max_hp": 80,
+		"damage": 14,
+		"move_speed": 5.0
+	},
+	"raiders": [],
+	"inputs": [
+		{"t": 0.2, "call": "Champion.equip", "args": ["iron_axe"], "note": "+12 dmg"},
+		{"t": 0.4, "call": "Champion.equip", "args": ["warrior_charm"], "note": "+3 dmg, +5 max_hp"},
+		{"t": 0.7, "call": "/root/SaveSystem.save_to", "args": ["/tmp/orcs_lair_gear_save.json"], "note": "save (max_hp=80 stored exclusive of +5 gear)"},
+		{"t": 1.0, "call": "Champion.unequip_all", "note": "drop everything → dmg back to 14"},
+		{"t": 1.4, "call": "/root/SaveSystem.load_from", "args": ["/tmp/orcs_lair_gear_save.json"], "note": "load — should re-equip both"}
+	],
+	"pass_criteria": {
+		"champion_alive": true,
+		"champion_damage_eq": 29
+	}
+}

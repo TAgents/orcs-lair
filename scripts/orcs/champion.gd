@@ -294,6 +294,29 @@ func equipped_ids() -> Dictionary:
 		out[slot] = (_equipped[slot] as Equipment).item_id
 	return out
 
+func gear_item_ids() -> Array:
+	# Stable order: WEAPON, ARMOR, TRINKET — matches Equipment.Slot enum.
+	var out: Array = []
+	for s in [Equipment.Slot.WEAPON, Equipment.Slot.ARMOR, Equipment.Slot.TRINKET]:
+		if _equipped.has(s):
+			out.append((_equipped[s] as Equipment).item_id)
+	return out
+
+func gear_max_hp_bonus_total() -> float:
+	var total: float = 0.0
+	for slot in _equipped:
+		total += (_equipped[slot] as Equipment).max_hp_bonus
+	return total
+
+func unequip_all() -> void:
+	# Reverse-loop max_hp adjustments so the post-state is "no gear,
+	# max_hp reverted to its pre-gear value".
+	for slot in _equipped.keys():
+		var item: Equipment = _equipped[slot]
+		max_hp -= item.max_hp_bonus
+	_equipped.clear()
+	hp = min(hp, max_hp)
+
 func _on_hitbox_area_entered(_area: Area3D) -> void:
 	pass
 
