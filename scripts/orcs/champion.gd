@@ -308,6 +308,21 @@ func gear_max_hp_bonus_total() -> float:
 		total += (_equipped[slot] as Equipment).max_hp_bonus
 	return total
 
+func equip_from_inventory(item_id: String) -> bool:
+	# Pulls the item out of the lair Inventory and equips it. If the slot
+	# is already filled, the previous gear is dropped back into Inventory
+	# so nothing's lost.
+	if not Inventory.has_item(item_id):
+		return false
+	var item: Equipment = Equipment.from_id(item_id)
+	if item == null:
+		return false
+	var prev_id: String = equipped_id(item.slot)
+	Inventory.remove(item_id)
+	if prev_id != "":
+		Inventory.add(prev_id)
+	return equip(item_id)
+
 func unequip_all() -> void:
 	# Reverse-loop max_hp adjustments so the post-state is "no gear,
 	# max_hp reverted to its pre-gear value".
