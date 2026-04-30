@@ -171,6 +171,18 @@ func _evaluate() -> Dictionary:
 		if got != want:
 			ok = false
 			reasons.append("rooms_placed_eq want=%d got=%d" % [want, got])
+	if crit.has("workers_assigned_eq"):
+		var want: int = int(crit["workers_assigned_eq"])
+		var got: int = _query_workers_assigned()
+		if got != want:
+			ok = false
+			reasons.append("workers_assigned_eq want=%d got=%d" % [want, got])
+	if crit.has("workers_at_rooms_eq"):
+		var want: int = int(crit["workers_at_rooms_eq"])
+		var got: int = _query_workers_at_rooms()
+		if got != want:
+			ok = false
+			reasons.append("workers_at_rooms_eq want=%d got=%d" % [want, got])
 	return {"pass": ok, "reasons": reasons}
 
 func _query_rooms_placed() -> int:
@@ -178,6 +190,21 @@ func _query_rooms_placed() -> int:
 	if bc != null and bc.has_method("placed_count"):
 		return int(bc.placed_count())
 	return 0
+
+func _query_workers_assigned() -> int:
+	var n: int = 0
+	for w in _lair.get_tree().get_nodes_in_group("workers"):
+		if w.has_method("is_assigned") and w.is_assigned():
+			n += 1
+	return n
+
+func _query_workers_at_rooms() -> int:
+	# Worker is "at" its room if state == WORKING (Worker.State.WORKING == 2).
+	var n: int = 0
+	for w in _lair.get_tree().get_nodes_in_group("workers"):
+		if "_state" in w and w._state == 2:
+			n += 1
+	return n
 
 func _collect_results(pass_result: Dictionary, reason: String) -> Dictionary:
 	var champion_hp: float = 0.0
@@ -204,6 +231,8 @@ func _collect_results(pass_result: Dictionary, reason: String) -> Dictionary:
 		},
 		"dodges_used": _dodges_used,
 		"rooms_placed": _query_rooms_placed(),
+		"workers_assigned": _query_workers_assigned(),
+		"workers_at_rooms": _query_workers_at_rooms(),
 	}
 
 func _write_results(results: Dictionary) -> void:

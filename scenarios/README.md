@@ -47,7 +47,9 @@ Notes:
     "raiders_killed_eq": 3,        // exact count
     "raiders_killed_gte": 1,       // minimum
     "max_duration_lte": 5.0,       // simulation must end within N seconds
-    "rooms_placed_eq": 3           // BuildController.placed_count() == N
+    "rooms_placed_eq": 3,          // BuildController.placed_count() == N
+    "workers_assigned_eq": 2,      // workers with assigned_room set
+    "workers_at_rooms_eq": 2       // workers in WORKING state (arrived at room)
   }
 }
 ```
@@ -75,7 +77,9 @@ Notes:
     "hits_received": 4
   },
   "dodges_used": 0,
-  "rooms_placed": 0                // unique rooms placed via BuildController
+  "rooms_placed": 0,               // unique rooms placed via BuildController
+  "workers_assigned": 0,           // workers with assigned_room set
+  "workers_at_rooms": 0            // workers in WORKING state
 }
 ```
 
@@ -89,6 +93,7 @@ Notes:
 | `bot_smoketest.json` | ProbeBot input driver test | timeout, no crash |
 | `slice_difficulty.json` | Slice fairness: 1v3 at default stats expected to fail | champion dies (intended) |
 | `build_smoketest.json` | Phase 2 build mode: enter, select 3 room types, place 3 rooms via direct call, reject duplicate, exit | `rooms_placed == 3` |
+| `worker_assignment.json` | Phase 2 worker auto-assignment: place 2 rooms, workers self-assign and walk to them | `workers_at_rooms == 2` |
 
 ## Determinism
 
