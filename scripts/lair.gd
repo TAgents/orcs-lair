@@ -17,10 +17,10 @@ func _ready() -> void:
 		for c in _champions:
 			c.died.connect(_on_champion_died)
 		_scenario_mode = true
-		# Disable wave director so it doesn't spawn extra raiders in scenarios.
-		var wd_node := get_node_or_null("WaveDirector")
-		if wd_node:
-			wd_node.queue_free()
+		# WaveDirector starts in State.INACTIVE — it's a no-op until start()
+		# is called, so it's safe to leave alive in scenario mode. Future
+		# scenarios that want to exercise wave progression can drive it
+		# directly via probe_bot.
 		return
 
 	# Debug arg for interactive runs: skip raider spawn so the player can
