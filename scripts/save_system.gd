@@ -4,21 +4,25 @@ extends Node
 # author by hand for tests). Persists Economy.gold, placed rooms, and
 # champion progression (level + xp + max_hp + damage).
 #
-# Format v2:
+# Format v3:
 #   {
-#     "version": 2,
+#     "version": 3,
 #     "gold": 100,
 #     "rooms": [{"x": -4, "z": -4, "type": 0}, …],
 #     "champions": [
-#       {"name": "Champion",  "level": 3, "xp": 12, "max_hp": 140, "damage": 22},
-#       {"name": "Champion2", "level": 1, "xp":  0, "max_hp": 100, "damage": 18}
+#       {"name": "Champion",  "level": 3, "xp": 12, "max_hp": 140, "damage": 22, "gear": ["iron_axe", "warrior_charm"]},
+#       {"name": "Champion2", "level": 1, "xp":  0, "max_hp": 100, "damage": 18, "gear": []}
 #     ]
 #   }
 #
-# v1 saves (no "champions" field) load cleanly — champions keep their
-# scene-default stats.
+# max_hp is saved EXCLUSIVE of gear bonuses (so it represents the level/base
+# value). On load, we unequip everything first, set the saved max_hp, then
+# re-equip — gear bonuses re-apply cleanly without double-counting.
+#
+# v1 saves (no "champions" field) and v2 saves (no "gear" field) load
+# cleanly — missing fields default to "no gear".
 
-const SAVE_FORMAT_VERSION: int = 2
+const SAVE_FORMAT_VERSION: int = 3
 
 signal saved(path: String)
 signal loaded(path: String)
@@ -73,8 +77,9 @@ func _gather_state() -> Dictionary:
 				"name": String(c.name),
 				"level": c.level,
 				"xp": c.xp,
-				"max_hp": c.max_hp,
+				"max_hp": c.max_hp - c.gear_max_hp_bonus_total(),
 				"damage": c.damage,
+				"gear": c.gear_item_ids(),
 			})
 	return {
 		"version": SAVE_FORMAT_VERSION,
@@ -99,10 +104,15 @@ func _apply_state(data: Dictionary) -> void:
 		var champ: Node = get_tree().root.get_node_or_null("Lair/" + name_str)
 		if champ == null or not (champ is Champion):
 			continue
+		# Strip gear first so any pre-existing gear bonuses don't get
+		# layered on top of the saved (gear-exclusive) max_hp.
+		champ.unequip_all()
 		champ.level = int(c_data.get("level", 1))
 		champ.xp = int(c_data.get("xp", 0))
 		champ.max_hp = float(c_data.get("max_hp", champ.max_hp))
 		champ.damage = float(c_data.get("damage", champ.damage))
+		for item_id in c_data.get("gear", []):
+			champ.equip(String(item_id))
 		champ.hp = champ.max_hp  # full heal on load
 
 func _build_controller() -> Node:
