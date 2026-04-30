@@ -40,6 +40,9 @@ func assign_to(room: Node3D) -> void:
 func is_assigned() -> bool:
 	return assigned_room != null and is_instance_valid(assigned_room)
 
+func is_working() -> bool:
+	return _state == State.WORKING
+
 func _physics_process(delta: float) -> void:
 	if not is_alive():
 		return

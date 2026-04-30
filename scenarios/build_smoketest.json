@@ -27,6 +27,7 @@
 	],
 	"pass_criteria": {
 		"champion_alive": true,
-		"rooms_placed_eq": 3
+		"rooms_placed_eq": 3,
+		"gold_eq": 0
 	}
 }

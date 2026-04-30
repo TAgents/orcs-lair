@@ -210,10 +210,9 @@ func _query_workers_assigned() -> int:
 	return n
 
 func _query_workers_at_rooms() -> int:
-	# Worker is "at" its room if state == WORKING (Worker.State.WORKING == 2).
 	var n: int = 0
 	for w in _lair.get_tree().get_nodes_in_group("workers"):
-		if "_state" in w and w._state == 2:
+		if w is Worker and w.is_working():
 			n += 1
 	return n
 

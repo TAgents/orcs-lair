@@ -17,6 +17,7 @@
 		"champion_alive": true,
 		"rooms_placed_eq": 2,
 		"workers_assigned_eq": 2,
-		"workers_at_rooms_eq": 2
+		"workers_at_rooms_eq": 2,
+		"gold_eq": 0
 	}
 }

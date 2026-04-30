@@ -44,9 +44,9 @@ func has_assigned_worker() -> bool:
 func _process(delta: float) -> void:
 	if not has_assigned_worker():
 		return
-	# Worker must actually be at the room (state == WORKING == 2), not en route.
+	# Worker must actually be at the room (WORKING state), not en route.
 	var w: Node = get_assigned_worker()
-	if "_state" in w and w._state != 2:
+	if w is Worker and not w.is_working():
 		return
 	if room_type == Room.Type.TREASURY:
 		Economy.add_gold(TREASURY_GOLD_PER_SEC * delta)
