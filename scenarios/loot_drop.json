@@ -1,0 +1,20 @@
+{
+	"name": "loot_drop",
+	"description": "Killed raiders drop gold to Economy. AI-controlled champion fights one weak raider with gold_drop=15. After the kill, Economy.gold = 100 (start) + 15 (drop) = 115.",
+	"seed": 7777,
+	"max_duration_s": 15,
+	"champion": {
+		"max_hp": 60,
+		"damage": 20,
+		"move_speed": 5.0
+	},
+	"raiders": [
+		{"position": [0, 0, 6], "max_hp": 8, "damage": 2, "move_speed": 3.0, "gold_drop": 15}
+	],
+	"inputs": [],
+	"pass_criteria": {
+		"champion_alive": true,
+		"raiders_killed_eq": 1,
+		"gold_eq": 115
+	}
+}

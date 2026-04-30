@@ -100,6 +100,8 @@ func _replace_raiders() -> void:
 			r.damage = float(r_data["damage"])
 		if r_data.has("move_speed"):
 			r.move_speed = float(r_data["move_speed"])
+		if r_data.has("gold_drop"):
+			r.gold_drop = int(r_data["gold_drop"])
 
 func _attach_bot() -> void:
 	_bot = ProbeBot.new()
