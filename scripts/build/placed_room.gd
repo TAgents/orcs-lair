@@ -21,12 +21,17 @@ const SLEEPING_HEAL_RADIUS: float = 4.5
 @export var grid_origin: Vector2i = Vector2i.ZERO
 
 var _assigned_worker: Node = null
+var _placed_at_msec: int = 0
 
 signal worker_assigned(worker: Node)
 signal worker_unassigned(worker: Node)
 
 func _ready() -> void:
 	add_to_group("placed_rooms")
+	_placed_at_msec = Time.get_ticks_msec()
+
+func age_seconds() -> float:
+	return float(Time.get_ticks_msec() - _placed_at_msec) / 1000.0
 
 func is_active() -> bool:
 	# Active = has an assigned worker who's actually at the room (WORKING).
