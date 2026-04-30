@@ -53,7 +53,7 @@ func _refresh_mode() -> void:
 			build_label.visible = true
 			_refresh_build_label()
 		_:
-			mode_label.text = "LAIR — Tab to possess · B to build"
+			mode_label.text = "LAIR — Tab NOW to possess · B to build"
 			build_label.visible = false
 
 func _on_build_type_changed(_t: int) -> void:
