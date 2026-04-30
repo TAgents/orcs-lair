@@ -18,6 +18,13 @@ func _ready() -> void:
 		_scenario_mode = true
 		return
 
+	# Debug arg for interactive runs: skip raider spawn so the player can
+	# explore lair / build mode without combat. Use as:
+	#   godot --path orcs-lair ++ --no-raiders
+	if "--no-raiders" in OS.get_cmdline_user_args():
+		for r in raiders_root.get_children():
+			r.queue_free()
+
 	champion.died.connect(_on_champion_died)
 	for r in raiders_root.get_children():
 		if r is Raider:
