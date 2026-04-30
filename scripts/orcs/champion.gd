@@ -41,6 +41,11 @@ var _dodge_timer: float = 0.0
 var _dodge_dir: Vector3 = Vector3.ZERO
 var _ai_target: Node3D = null
 
+# Equipped gear. Slot (Equipment.Slot enum int) → Equipment resource. Each
+# equip applies max_hp_bonus immediately (and grants the delta as healing
+# so trading up doesn't suddenly leave the champion overcapped).
+var _equipped: Dictionary = {}
+
 func _ready() -> void:
 	faction = "orc"
 	add_to_group("champions")
@@ -249,7 +254,45 @@ func effective_damage() -> float:
 	for room in get_tree().get_nodes_in_group("placed_rooms"):
 		if room is PlacedRoom and room.room_type == Room.Type.TRAINING and room.is_active():
 			bonus += PlacedRoom.TRAINING_DAMAGE_BONUS
+	for slot in _equipped:
+		bonus += float((_equipped[slot] as Equipment).damage_bonus)
 	return damage + bonus
+
+func equip(item_id: String) -> bool:
+	var item: Equipment = Equipment.from_id(item_id)
+	if item == null:
+		return false
+	var prev: Equipment = _equipped.get(item.slot)
+	if prev != null:
+		max_hp -= prev.max_hp_bonus
+	_equipped[item.slot] = item
+	max_hp += item.max_hp_bonus
+	# Grant the gain so an upgrade doesn't strand hp at the old cap.
+	if item.max_hp_bonus > 0.0:
+		hp = min(max_hp, hp + item.max_hp_bonus)
+	else:
+		hp = min(hp, max_hp)
+	return true
+
+func unequip(slot: int) -> bool:
+	if not _equipped.has(slot):
+		return false
+	var prev: Equipment = _equipped[slot]
+	_equipped.erase(slot)
+	max_hp -= prev.max_hp_bonus
+	hp = min(hp, max_hp)
+	return true
+
+func equipped_id(slot: int) -> String:
+	if _equipped.has(slot):
+		return (_equipped[slot] as Equipment).item_id
+	return ""
+
+func equipped_ids() -> Dictionary:
+	var out: Dictionary = {}
+	for slot in _equipped:
+		out[slot] = (_equipped[slot] as Equipment).item_id
+	return out
 
 func _on_hitbox_area_entered(_area: Area3D) -> void:
 	pass

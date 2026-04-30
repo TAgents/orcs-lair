@@ -1,0 +1,20 @@
+{
+	"name": "equipment_buff",
+	"description": "Champion equips items → effective_damage and max_hp rise. Base damage 14, base max_hp 80. Equip rusty_axe (+5 dmg) and warrior_charm (+3 dmg, +5 hp). Final: damage 14+5+3 = 22, max_hp 80+5 = 85.",
+	"seed": 4242,
+	"max_duration_s": 2,
+	"champion": {
+		"max_hp": 80,
+		"damage": 14,
+		"move_speed": 5.0
+	},
+	"raiders": [],
+	"inputs": [
+		{"t": 0.2, "call": "Champion.equip", "args": ["rusty_axe"], "note": "+5 dmg"},
+		{"t": 0.4, "call": "Champion.equip", "args": ["warrior_charm"], "note": "+3 dmg, +5 max_hp"}
+	],
+	"pass_criteria": {
+		"champion_alive": true,
+		"champion_damage_eq": 22
+	}
+}
