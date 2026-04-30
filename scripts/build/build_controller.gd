@@ -167,17 +167,18 @@ func _mouse_floor_hit() -> Variant:
 
 # --- Public API for tests / external callers ---------------------------------
 
-func place_at_xy(x: int, z: int, room_type: int = -1) -> bool:
-	return place_at_grid(Vector2i(x, z), room_type)
+func place_at_xy(x: int, z: int, room_type: int = -1, pay_cost: bool = true) -> bool:
+	return place_at_grid(Vector2i(x, z), room_type, pay_cost)
 
-func place_at_grid(grid: Vector2i, room_type: int = -1) -> bool:
+func place_at_grid(grid: Vector2i, room_type: int = -1, pay_cost: bool = true) -> bool:
 	var prev := current_type
 	if room_type >= 0:
 		current_type = room_type
 	var room := Room.make(current_type)
-	var ok := _can_place(grid, room.footprint) and Economy.can_afford(room.cost)
+	var ok := _can_place(grid, room.footprint) and (not pay_cost or Economy.can_afford(room.cost))
 	if ok:
-		Economy.spend(room.cost, "place_%s" % room.display_name)
+		if pay_cost:
+			Economy.spend(room.cost, "place_%s" % room.display_name)
 		var node := _spawn_room_visual(grid, room)
 		rooms_root.add_child(node)
 		node.global_position = _grid_to_world_center(grid, room.footprint)
@@ -194,3 +195,12 @@ func placed_count() -> int:
 	for v in occupied.values():
 		seen[v] = true
 	return seen.size()
+
+func clear_all() -> void:
+	# Free every placed room and forget all occupancy. Workers stay assigned
+	# to the now-freed nodes only until their next AI step (assigned_room
+	# will fail is_instance_valid → state machine returns to WANDER on its
+	# own).
+	for child in rooms_root.get_children():
+		child.queue_free()
+	occupied.clear()
