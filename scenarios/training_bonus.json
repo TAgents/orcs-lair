@@ -1,0 +1,21 @@
+{
+	"name": "training_bonus",
+	"description": "Phase 2 strategic payoff: Training room with assigned worker grants champion +10 effective damage. Place a Training room near workers so a worker walks over and reaches WORKING state. Verify champion.effective_damage() = base 18 + 10 = 28 once active.",
+	"seed": 8888,
+	"max_duration_s": 5,
+	"champion": {
+		"max_hp": 100,
+		"damage": 18,
+		"move_speed": 5.0
+	},
+	"raiders": [],
+	"inputs": [
+		{"t": 0.3, "call": "BuildController.place_at_xy", "args": [-2, -3, 1], "note": "place Training near workers"}
+	],
+	"pass_criteria": {
+		"champion_alive": true,
+		"rooms_placed_eq": 1,
+		"workers_at_rooms_eq": 1,
+		"champion_damage_eq": 28
+	}
+}

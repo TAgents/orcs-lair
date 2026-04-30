@@ -146,8 +146,18 @@ func _on_hitbox_body_entered(body: Node) -> void:
 	if body == self:
 		return
 	if body is Orc and body.faction != faction:
-		var dmg: float = damage * (cleave_damage_mult if _cleave_active else 1.0)
+		var dmg: float = effective_damage() * (cleave_damage_mult if _cleave_active else 1.0)
 		body.take_damage(dmg, self)
+
+# Per-swing damage = base damage + every active Training room's bonus.
+# Active means a worker is in the room and WORKING. Walking the group is
+# cheap because rooms count is small.
+func effective_damage() -> float:
+	var bonus: float = 0.0
+	for room in get_tree().get_nodes_in_group("placed_rooms"):
+		if room is PlacedRoom and room.room_type == Room.Type.TRAINING and room.is_active():
+			bonus += PlacedRoom.TRAINING_DAMAGE_BONUS
+	return damage + bonus
 
 func _on_hitbox_area_entered(_area: Area3D) -> void:
 	pass

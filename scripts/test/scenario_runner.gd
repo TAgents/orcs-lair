@@ -211,7 +211,18 @@ func _evaluate() -> Dictionary:
 		if got != want:
 			ok = false
 			reasons.append("possessed_name_eq want=%s got=%s" % [want, got])
+	if crit.has("champion_damage_eq"):
+		var want: float = float(crit["champion_damage_eq"])
+		var got: float = _query_champion_damage()
+		if absf(got - want) > 0.001:
+			ok = false
+			reasons.append("champion_damage_eq want=%.1f got=%.1f" % [want, got])
 	return {"pass": ok, "reasons": reasons}
+
+func _query_champion_damage() -> float:
+	if _champion != null and is_instance_valid(_champion) and _champion.has_method("effective_damage"):
+		return float(_champion.effective_damage())
+	return 0.0
 
 func _query_possessed_name() -> String:
 	if Game.possessed != null and is_instance_valid(Game.possessed):
@@ -267,6 +278,7 @@ func _collect_results(pass_result: Dictionary, reason: String) -> Dictionary:
 		"workers_at_rooms": _query_workers_at_rooms(),
 		"gold": Economy.gold,
 		"possessed": _query_possessed_name(),
+		"champion_damage": _query_champion_damage(),
 	}
 
 func _write_results(results: Dictionary) -> void:
