@@ -8,6 +8,10 @@ class_name Champion
 @export var cleave_cooldown: float = 1.5
 @export var cleave_damage_mult: float = 1.5
 @export var cleave_size: Vector3 = Vector3(3.5, 1.4, 2.5)
+@export var charge_cooldown: float = 3.0
+@export var charge_speed: float = 14.0
+@export var charge_duration: float = 0.4
+@export var charge_damage_mult: float = 1.2
 
 @onready var hitbox: Area3D = $Hitbox
 @onready var hitbox_shape: CollisionShape3D = $Hitbox/CollisionShape3D
@@ -15,6 +19,11 @@ class_name Champion
 var _cleave_timer: float = 0.0
 var _normal_hitbox_size: Vector3 = Vector3.ZERO
 var _cleave_active: bool = false
+var _charge_timer: float = 0.0
+var _charge_remaining: float = 0.0
+var _charge_dir: Vector3 = Vector3.ZERO
+var _charge_active: bool = false
+var _charge_already_hit: Dictionary = {}
 
 var _attack_timer: float = 0.0
 var _dodge_timer: float = 0.0
@@ -40,6 +49,21 @@ func _physics_process(delta: float) -> void:
 
 	_attack_timer = max(0.0, _attack_timer - delta)
 	_cleave_timer = max(0.0, _cleave_timer - delta)
+	_charge_timer = max(0.0, _charge_timer - delta)
+	if _charge_remaining > 0.0:
+		_charge_remaining -= delta
+		set_vulnerable(false)
+		velocity.x = _charge_dir.x * charge_speed
+		velocity.z = _charge_dir.z * charge_speed
+		_check_charge_hits()
+		apply_gravity(delta)
+		move_and_slide()
+		if _charge_remaining <= 0.0:
+			_charge_active = false
+			_charge_already_hit.clear()
+			set_vulnerable(true)
+			hitbox.monitoring = false
+		return
 	if _dodge_timer > 0.0:
 		_dodge_timer -= delta
 		set_vulnerable(false)
@@ -88,8 +112,13 @@ func _player_input() -> void:
 	if Input.is_action_just_pressed("attack") and _attack_timer <= 0.0:
 		_swing()
 
+	# Charge can also be triggered with no movement input — uses current facing.
+
 	if Input.is_action_just_pressed("skill_cleave") and _cleave_timer <= 0.0 and _attack_timer <= 0.0:
 		_cleave()
+
+	if Input.is_action_just_pressed("skill_charge") and _charge_timer <= 0.0:
+		_start_charge()
 
 func _ai_step() -> void:
 	# Simple AI: hunt nearest raider when one exists, idle otherwise.
@@ -146,8 +175,56 @@ func _on_hitbox_body_entered(body: Node) -> void:
 	if body == self:
 		return
 	if body is Orc and body.faction != faction:
+		if _charge_active:
+			# Charge tracks per-body to avoid multi-hit on same enemy.
+			if _charge_already_hit.has(body):
+				return
+			_charge_already_hit[body] = true
+			body.take_damage(effective_damage() * charge_damage_mult, self)
+			return
 		var dmg: float = effective_damage() * (cleave_damage_mult if _cleave_active else 1.0)
 		body.take_damage(dmg, self)
+
+# Charge: dash forward (in input direction or current facing) at charge_speed
+# for charge_duration seconds. Invulnerable, hits each enemy along the path
+# at most once for charge_damage_mult × effective_damage. Cooldown gates.
+func _start_charge() -> void:
+	_charge_timer = charge_cooldown
+	_charge_remaining = charge_duration
+	_charge_active = true
+	_charge_already_hit.clear()
+	_charge_dir = _current_facing_or_input()
+	hitbox.monitoring = true
+
+func _current_facing_or_input() -> Vector3:
+	# Prefer the player's current move-input vector; fall back to body facing.
+	if Game.mode == Game.Mode.POSSESSING and Game.possessed == self:
+		var raw := Vector2(
+			Input.get_action_strength("move_right") - Input.get_action_strength("move_left"),
+			Input.get_action_strength("move_back") - Input.get_action_strength("move_forward"),
+		)
+		if raw.length() > 0.05:
+			var cam: Camera3D = get_viewport().get_camera_3d()
+			if cam != null:
+				var fwd: Vector3 = -cam.global_transform.basis.z
+				fwd.y = 0.0
+				fwd = fwd.normalized()
+				var right: Vector3 = cam.global_transform.basis.x
+				right.y = 0.0
+				right = right.normalized()
+				return (right * raw.x + fwd * (-raw.y)).normalized()
+	# Fallback: orc's local forward (-Z) in world space.
+	var fb: Vector3 = -global_transform.basis.z
+	fb.y = 0.0
+	if fb.length() < 0.01:
+		fb = Vector3.FORWARD
+	return fb.normalized()
+
+func _check_charge_hits() -> void:
+	# Hitbox.body_entered fires once per enter; bodies already inside when
+	# monitoring was just enabled don't fire it. Snap-check each frame.
+	for body in hitbox.get_overlapping_bodies():
+		_on_hitbox_body_entered(body)
 
 # Per-swing damage = base damage + every active Training room's bonus.
 # Active means a worker is in the room and WORKING. Walking the group is
