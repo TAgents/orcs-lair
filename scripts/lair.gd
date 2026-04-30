@@ -38,6 +38,8 @@ func _collect_champions() -> void:
 		if c is Champion:
 			_champions.append(c)
 
+const QUICKSAVE_PATH: String = "user://quicksave.json"
+
 func _unhandled_input(event: InputEvent) -> void:
 	# ProbeBot drives input via Input.action_press in scenarios, so this
 	# handler runs even in scenario mode — that's intentional.
@@ -49,6 +51,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		Game.toggle_build()
 	elif event.is_action_pressed("build_cancel") and Game.mode == Game.Mode.BUILDING:
 		Game.set_mode(Game.Mode.LAIR, null)
+	elif event.is_action_pressed("quick_save"):
+		var ok := SaveSystem.save_to(QUICKSAVE_PATH)
+		print("[lair] quicksave → %s : %s" % [QUICKSAVE_PATH, "OK" if ok else "FAILED"])
+	elif event.is_action_pressed("quick_load"):
+		var ok := SaveSystem.load_from(QUICKSAVE_PATH)
+		print("[lair] quickload ← %s : %s" % [QUICKSAVE_PATH, "OK" if ok else "FAILED"])
 
 # Tab cycles: NONE → champion[0] → champion[1] → … → champion[N-1] → NONE → ...
 # Skips dead/freed champions automatically.

@@ -7,6 +7,7 @@ extends CanvasLayer
 @onready var build_label: Label = $Root/BuildLabel
 @onready var gold_label: Label = $Root/GoldLabel
 @onready var level_label: Label = $Root/LevelLabel
+@onready var skills_label: Label = $Root/SkillsLabel
 
 var _champion: Champion = null
 var _build_controller: BuildController = null
@@ -23,11 +24,34 @@ func _ready() -> void:
 	_find_build_controller()
 
 func _process(_delta: float) -> void:
+	# HP / level / XP always reflect the *named* champion (first one — Champion2
+	# stays anonymous to the HUD until per-champion portraits land).
 	if _champion != null and is_instance_valid(_champion):
 		hp_bar.max_value = _champion.max_hp
 		hp_bar.value = _champion.hp
 		hp_label.text = "%d / %d" % [int(_champion.hp), int(_champion.max_hp)]
 		level_label.text = "Lv %d   XP %d/%d" % [_champion.level, _champion.xp, _champion.xp_threshold()]
+
+	# Skill bar: visible only while possessing, sourced from whichever
+	# champion is currently being controlled (so cooldowns reflect what
+	# the player just pressed).
+	if Game.mode == Game.Mode.POSSESSING and Game.possessed != null and is_instance_valid(Game.possessed) and Game.possessed is Champion:
+		skills_label.visible = true
+		skills_label.text = _format_skills(Game.possessed)
+	else:
+		skills_label.visible = false
+
+func _format_skills(c: Champion) -> String:
+	return "%s  %s  %s" % [
+		_skill_cell("J Attack", c.attack_cooldown_remaining()),
+		_skill_cell("K Cleave", c.cleave_cooldown_remaining()),
+		_skill_cell("L Charge", c.charge_cooldown_remaining()),
+	]
+
+func _skill_cell(label: String, cd: float) -> String:
+	if cd <= 0.001:
+		return "[%s ✓]" % label
+	return "[%s %.1fs]" % [label, cd]
 
 func _find_champion() -> void:
 	var champs := get_tree().get_nodes_in_group("champions")
