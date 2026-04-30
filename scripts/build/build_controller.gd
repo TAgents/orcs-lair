@@ -8,6 +8,7 @@ class_name BuildController
 const CELL_SIZE: float = 1.0
 const FLOOR_HALF_EXTENT: float = 12.0  # lair floor goes [-12, +12] on x/z
 const ROOM_HEIGHT: float = 0.35
+const DEMOLISH_REFUND_FRACTION: float = 0.5
 
 @onready var ghost: MeshInstance3D = $Ghost
 
@@ -17,6 +18,7 @@ var current_type: int = Room.Type.TRAINING
 var _ghost_mat: StandardMaterial3D = null
 
 signal room_placed(grid_origin: Vector2i, room_type: int)
+signal room_demolished(grid_origin: Vector2i, room_type: int, refund: int)
 signal type_changed(new_type: int)
 
 func _ready() -> void:
@@ -60,6 +62,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		_select_type(Room.Type.TREASURY)
 	elif event.is_action_pressed("build_confirm"):
 		_try_place()
+	elif event.is_action_pressed("build_demolish"):
+		_try_demolish()
 
 func _select_type(t: int) -> void:
 	if current_type == t:
@@ -188,6 +192,42 @@ func place_at_grid(grid: Vector2i, room_type: int = -1, pay_cost: bool = true) -
 		room_placed.emit(grid, current_type)
 	current_type = prev
 	return ok
+
+func _try_demolish() -> void:
+	var hit: Variant = _mouse_floor_hit()
+	if hit == null:
+		return
+	var cell := Vector2i(int(floor(hit.x / CELL_SIZE)), int(floor(hit.z / CELL_SIZE)))
+	if not occupied.has(cell):
+		return
+	var room_node: Node3D = occupied[cell]
+	demolish_room_node(room_node)
+
+# Public API for tests / external callers (RMB and scripted scenarios).
+func demolish_at_xy(x: int, z: int) -> bool:
+	var cell := Vector2i(x, z)
+	if not occupied.has(cell):
+		return false
+	demolish_room_node(occupied[cell])
+	return true
+
+func demolish_room_node(room_node: Node3D) -> void:
+	if room_node == null or not is_instance_valid(room_node):
+		return
+	var room_type: int = room_node.room_type if "room_type" in room_node else 0
+	var grid_origin: Vector2i = room_node.grid_origin if "grid_origin" in room_node else Vector2i.ZERO
+	var refund: int = int(Room.make(room_type).cost * DEMOLISH_REFUND_FRACTION)
+	# Remove every cell that points to this node.
+	var to_remove: Array = []
+	for k in occupied:
+		if occupied[k] == room_node:
+			to_remove.append(k)
+	for k in to_remove:
+		occupied.erase(k)
+	room_node.queue_free()
+	if refund > 0:
+		Economy.gold = Economy.gold + refund
+	room_demolished.emit(grid_origin, room_type, refund)
 
 func placed_count() -> int:
 	# One placed room may occupy multiple cells; dedupe by node.

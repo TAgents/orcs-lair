@@ -107,7 +107,7 @@ func _refresh_build_label() -> void:
 	if _build_controller == null:
 		return
 	var room := Room.make(_build_controller.current_type)
-	build_label.text = "Selected: %s (%dg)   [1 Sleeping (%dg) · 2 Training (%dg) · 3 Treasury (%dg) · LMB place]" % [
+	build_label.text = "Selected: %s (%dg)   [1 Sleeping (%dg) · 2 Training (%dg) · 3 Treasury (%dg) · LMB place · RMB demolish (50%% refund)]" % [
 		room.display_name, room.cost,
 		Room.make(Room.Type.SLEEPING).cost,
 		Room.make(Room.Type.TRAINING).cost,

@@ -46,6 +46,11 @@ func is_working() -> bool:
 func _physics_process(delta: float) -> void:
 	if not is_alive():
 		return
+	# If our assigned room got demolished while we were going to / working at
+	# it, fall back to wander so we're available for the next room.
+	if (_state == State.GOING_TO_ROOM or _state == State.WORKING) and not is_assigned():
+		_state = State.WANDER
+		_pick_new_wander_target()
 	match _state:
 		State.WANDER:
 			_step_wander(delta)
