@@ -107,6 +107,7 @@ By default, scenarios trim the lair to a single named "Champion" (Champion2 is f
 | `build_cost.json` | Phase 2 build economy: place 2 Treasuries (80g of 100), 3rd rejected | `rooms_placed == 2`, `gold == 20` |
 | `cycle_possession.json` | Phase 3 entry: 2 Tabs cycle Champion → Champion2 | `possessed == "Champion2"` |
 | `cycle_possession_release.json` | 3 Tabs cycle through both champions, then release | `possessed == ""` |
+| `cleave_skill.json` | Phase 3 skill: K = cleave (wider hitbox, 1.5× damage). One swing one-shots two adjacent raiders | both raiders dead from a single press |
 
 ## Determinism
 
