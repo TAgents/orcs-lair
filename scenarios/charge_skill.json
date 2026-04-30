@@ -1,0 +1,24 @@
+{
+	"name": "charge_skill",
+	"description": "Phase 3 skill: L = charge. Possessed champion presses L, dashes forward at 14 m/s for 0.4s with i-frames, hits enemies along path for 1.2× damage. Test: 1 raider south of champion (matches default facing), one charge press should kill it. Damage 18 × 1.2 = 22 vs 15 hp raider.",
+	"seed": 222,
+	"max_duration_s": 3,
+	"champion": {
+		"max_hp": 100,
+		"damage": 18,
+		"move_speed": 5.0
+	},
+	"raiders": [
+		{"position": [0, 0, -5], "max_hp": 15, "damage": 8, "move_speed": 3.0}
+	],
+	"inputs": [
+		{"t": 0.2, "press": "possess_toggle", "note": "possess Champion"},
+		{"t": 0.3, "release": "possess_toggle"},
+		{"t": 0.5, "press": "skill_charge", "note": "charge forward (-Z), through the raider"},
+		{"t": 0.6, "release": "skill_charge"}
+	],
+	"pass_criteria": {
+		"champion_alive": true,
+		"raiders_killed_eq": 1
+	}
+}
