@@ -267,6 +267,16 @@ func _face_velocity() -> void:
 func xp_threshold() -> int:
 	return XP_PER_LEVEL_BASE * level
 
+# Cooldown getters for HUD readouts. 0 = ready.
+func attack_cooldown_remaining() -> float:
+	return _attack_timer
+
+func cleave_cooldown_remaining() -> float:
+	return _cleave_timer
+
+func charge_cooldown_remaining() -> float:
+	return _charge_timer
+
 func gain_xp(amount: int) -> void:
 	if amount <= 0:
 		return
