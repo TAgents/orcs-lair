@@ -279,6 +279,13 @@ func _level_up() -> void:
 	hp = max_hp  # full heal on level-up
 	leveled_up.emit(level)
 
+# Test/debug: reset XP and level back to 1/0. Doesn't undo accumulated
+# max_hp / damage from prior level-ups (those are stat changes, not
+# progression — load_from re-applies them from the save).
+func reset_progression() -> void:
+	level = 1
+	xp = 0
+
 func _nearest(group: String) -> Node3D:
 	var best: Node3D = null
 	var best_d: float = INF
