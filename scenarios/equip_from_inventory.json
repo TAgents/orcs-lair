@@ -1,0 +1,21 @@
+{
+	"name": "equip_from_inventory",
+	"description": "Champion.equip_from_inventory pulls a stored item out of Inventory and equips it. Seed Inventory with iron_axe directly, then equip. Inventory empties; effective_damage rises 14 → 26.",
+	"seed": 8002,
+	"max_duration_s": 2,
+	"champion": {
+		"max_hp": 60,
+		"damage": 14,
+		"move_speed": 5.0
+	},
+	"raiders": [],
+	"inputs": [
+		{"t": 0.2, "call": "/root/Inventory.add", "args": ["iron_axe"], "note": "seed inventory"},
+		{"t": 0.4, "call": "Champion.equip_from_inventory", "args": ["iron_axe"]}
+	],
+	"pass_criteria": {
+		"champion_alive": true,
+		"inventory_count_eq": 0,
+		"champion_damage_eq": 26
+	}
+}

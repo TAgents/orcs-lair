@@ -33,6 +33,7 @@ func setup(scenario_data: Dictionary, out_path: String, lair_node: Node3D) -> vo
 
 	_apply_seed()
 	Economy.reset()
+	Inventory.clear()
 	_trim_champions()
 	_apply_champion_overrides()
 	_replace_raiders()
@@ -102,6 +103,8 @@ func _replace_raiders() -> void:
 			r.move_speed = float(r_data["move_speed"])
 		if r_data.has("gold_drop"):
 			r.gold_drop = int(r_data["gold_drop"])
+		if r_data.has("drop_item_id"):
+			r.drop_item_id = String(r_data["drop_item_id"])
 
 func _attach_bot() -> void:
 	_bot = ProbeBot.new()
@@ -238,6 +241,17 @@ func _evaluate() -> Dictionary:
 		if got != want:
 			ok = false
 			reasons.append("champion_level_eq want=%d got=%d" % [want, got])
+	if crit.has("inventory_count_eq"):
+		var want: int = int(crit["inventory_count_eq"])
+		var got: int = Inventory.count()
+		if got != want:
+			ok = false
+			reasons.append("inventory_count_eq want=%d got=%d" % [want, got])
+	if crit.has("inventory_has"):
+		var want_id: String = String(crit["inventory_has"])
+		if not Inventory.has_item(want_id):
+			ok = false
+			reasons.append("inventory_has want=%s items=%s" % [want_id, str(Inventory.items())])
 	if crit.has("champion_hp_gte"):
 		var want: float = float(crit["champion_hp_gte"])
 		var got: float = _champion.hp if _champion != null and is_instance_valid(_champion) else 0.0

@@ -7,6 +7,10 @@ class_name Raider
 # per-raider for tougher waves; the lair.tscn defaults stay modest so early
 # waves don't flood gold.
 @export var gold_drop: int = 10
+# Item dropped to Inventory on death. Empty string = no drop. Boss waves
+# and scenario raiders set this; lair.tscn defaults stay empty so only
+# special encounters reward gear.
+@export var drop_item_id: String = ""
 
 @onready var hitbox: Area3D = $Hitbox
 
@@ -59,6 +63,8 @@ func _swing() -> void:
 func _die() -> void:
 	if gold_drop > 0:
 		Economy.add_gold(float(gold_drop))
+	if drop_item_id != "":
+		Inventory.add(drop_item_id)
 	super._die()
 
 func _on_hitbox_body_entered(body: Node) -> void:

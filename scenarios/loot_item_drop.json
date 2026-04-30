@@ -1,0 +1,22 @@
+{
+	"name": "loot_item_drop",
+	"description": "Killed raiders with drop_item_id push gear into the lair Inventory. Champion (AI) kills one raider with drop_item_id=iron_axe and gold_drop=20. Final: Inventory holds iron_axe, gold = 100 + 20 = 120.",
+	"seed": 8001,
+	"max_duration_s": 15,
+	"champion": {
+		"max_hp": 60,
+		"damage": 20,
+		"move_speed": 5.0
+	},
+	"raiders": [
+		{"position": [0, 0, 6], "max_hp": 8, "damage": 2, "move_speed": 3.0, "gold_drop": 20, "drop_item_id": "iron_axe"}
+	],
+	"inputs": [],
+	"pass_criteria": {
+		"champion_alive": true,
+		"raiders_killed_eq": 1,
+		"gold_eq": 120,
+		"inventory_count_eq": 1,
+		"inventory_has": "iron_axe"
+	}
+}
