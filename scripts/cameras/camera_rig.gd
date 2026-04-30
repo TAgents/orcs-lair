@@ -35,7 +35,10 @@ func _smooth_follow() -> void:
 	var back: Vector3 = -target.transform.basis.z
 	var desired: Vector3 = target.global_position - back * third_person_distance + Vector3.UP * third_person_height
 	var look_at_pt: Vector3 = target.global_position + Vector3.UP * 1.0
-	camera.global_position = camera.global_position.lerp(desired, 0.15)
+	# Slower follow → less feedback into camera-relative WASD input. Combined
+	# with the slower body rotation in champion.gd, the character feels more
+	# planted and predictable.
+	camera.global_position = camera.global_position.lerp(desired, 0.08)
 	camera.look_at(look_at_pt, Vector3.UP)
 
 func _move_camera(pos: Vector3, rot: Vector3, instant: bool) -> void:
