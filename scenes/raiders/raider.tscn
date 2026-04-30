@@ -1,0 +1,53 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/raiders/raider.gd" id="1_raider"]
+
+[sub_resource type="CapsuleShape3D" id="cap_shape"]
+height = 1.7
+radius = 0.4
+
+[sub_resource type="CapsuleMesh" id="cap_mesh"]
+height = 1.7
+radius = 0.4
+
+[sub_resource type="StandardMaterial3D" id="mat_red"]
+albedo_color = Color(0.7, 0.18, 0.18, 1)
+roughness = 0.8
+
+[sub_resource type="BoxShape3D" id="hitbox_shape"]
+size = Vector3(1.4, 1.4, 1.4)
+
+[sub_resource type="CylinderMesh" id="dir_mesh"]
+height = 0.1
+top_radius = 0.05
+bottom_radius = 0.22
+
+[node name="Raider" type="CharacterBody3D" groups=["raiders"]]
+script = ExtResource("1_raider")
+max_hp = 25.0
+move_speed = 3.8
+damage = 8.0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 0)
+shape = SubResource("cap_shape")
+
+[node name="Mesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 0)
+mesh = SubResource("cap_mesh")
+material_override = SubResource("mat_red")
+
+[node name="DirIndicator" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 1.5, -0.42)
+mesh = SubResource("dir_mesh")
+material_override = SubResource("mat_red")
+
+[node name="Hitbox" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0, -0.9)
+monitoring = false
+monitorable = false
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Hitbox"]
+shape = SubResource("hitbox_shape")
