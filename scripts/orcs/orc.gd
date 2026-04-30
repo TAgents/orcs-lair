@@ -53,7 +53,7 @@ func is_alive() -> bool:
 # GLB at runtime and replace the placeholder capsule "Mesh" child. Skipped in
 # scenario mode so headless tests stay deterministic.
 
-func _swap_in_visual_model(model_path: String) -> void:
+func _swap_in_visual_model(model_path: String, scale: float = 2.0) -> void:
 	if _is_scenario_mode():
 		return
 	if not ResourceLoader.exists(model_path):
@@ -73,6 +73,7 @@ func _swap_in_visual_model(model_path: String) -> void:
 		existing_dir.queue_free()
 	instance.name = "Mesh"
 	add_child(instance)
+	(instance as Node3D).scale = Vector3(scale, scale, scale)
 
 func _is_scenario_mode() -> bool:
 	for a in OS.get_cmdline_user_args():

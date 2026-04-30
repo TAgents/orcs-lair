@@ -14,7 +14,7 @@ func _ready() -> void:
 	add_to_group("raiders")
 	hitbox.monitoring = false
 	hitbox.body_entered.connect(_on_hitbox_body_entered)
-	_swap_in_visual_model("res://assets/kenney_mini-dungeon/character-human.glb")
+	_swap_in_visual_model("res://assets/kenney_mini-dungeon/character-human.glb", 2.0)
 
 func _physics_process(delta: float) -> void:
 	if not is_alive():
