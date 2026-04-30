@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/wave_director.gd" id="1_wd"]
+
+[node name="WaveDirector" type="Node"]
+script = ExtResource("1_wd")

@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3]
+[gd_scene load_steps=22 format=3]
 
 [ext_resource type="Script" path="res://scripts/lair.gd" id="1_lair"]
 [ext_resource type="PackedScene" path="res://scenes/cameras/camera_rig.tscn" id="2_rig"]
@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" path="res://scenes/raiders/raider.tscn" id="5_raider"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="6_hud"]
 [ext_resource type="PackedScene" path="res://scenes/build/build_controller.tscn" id="7_build"]
+[ext_resource type="PackedScene" path="res://scenes/wave_director.tscn" id="8_waves"]
 
 [sub_resource type="ProceduralSkyMaterial" id="sky_mat"]
 sky_top_color = Color(0.12, 0.10, 0.18, 1)
@@ -163,5 +164,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, 9)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, 11)
 
 [node name="BuildController" parent="." instance=ExtResource("7_build")]
+
+[node name="WaveDirector" parent="." instance=ExtResource("8_waves")]
 
 [node name="HUD" parent="." instance=ExtResource("6_hud")]

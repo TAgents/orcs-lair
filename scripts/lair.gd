@@ -17,20 +17,36 @@ func _ready() -> void:
 		for c in _champions:
 			c.died.connect(_on_champion_died)
 		_scenario_mode = true
+		# Disable wave director so it doesn't spawn extra raiders in scenarios.
+		var wd_node := get_node_or_null("WaveDirector")
+		if wd_node:
+			wd_node.queue_free()
 		return
 
 	# Debug arg for interactive runs: skip raider spawn so the player can
 	# explore lair / build mode without combat. Use as:
 	#   godot --path orcs-lair ++ --no-raiders
-	if "--no-raiders" in OS.get_cmdline_user_args():
+	var no_raiders: bool = "--no-raiders" in OS.get_cmdline_user_args()
+	if no_raiders:
 		for r in raiders_root.get_children():
 			r.queue_free()
+		var wd_node := get_node_or_null("WaveDirector")
+		if wd_node:
+			wd_node.queue_free()
 
 	for c in _champions:
 		c.died.connect(_on_champion_died)
 	for r in raiders_root.get_children():
 		if r is Raider:
 			r.died.connect(_on_raider_died)
+
+	# Start wave progression: subsequent waves spawn after current is wiped.
+	if not no_raiders:
+		var wd: Node = get_node_or_null("WaveDirector")
+		if wd != null:
+			wd.wave_started.connect(_on_wave_started)
+			wd.all_waves_cleared.connect(_on_all_waves_cleared)
+			wd.start()
 
 func _collect_champions() -> void:
 	_champions.clear()
@@ -100,11 +116,20 @@ func _on_champion_died(_o: Orc) -> void:
 	Game.end_game(false)
 
 func _on_raider_died(_o: Orc) -> void:
+	# Connect freshly-spawned wave raiders so we can also notice their deaths.
+	# (Could also be done via group; this is direct.)
+	pass
+
+func _on_wave_started(wave_idx: int, total: int) -> void:
+	# Connect this wave's raiders to ourselves for any per-death hooks.
+	for r in raiders_root.get_children():
+		if r is Raider and not r.died.is_connected(_on_raider_died):
+			r.died.connect(_on_raider_died)
+	print("[lair] wave %d/%d started" % [wave_idx + 1, total])
+
+func _on_all_waves_cleared() -> void:
 	if _ended:
 		return
-	for r in raiders_root.get_children():
-		if r is Raider and r.is_alive():
-			return
 	_ended = true
 	Game.end_game(true)
 
