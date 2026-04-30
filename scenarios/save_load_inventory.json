@@ -1,0 +1,24 @@
+{
+	"name": "save_load_inventory",
+	"description": "Save format v4: lair Inventory persists through save → clear → load. Push iron_axe and leather_jerkin into Inventory, save, clear, load → both items return.",
+	"seed": 9201,
+	"max_duration_s": 2,
+	"champion": {
+		"max_hp": 80,
+		"damage": 14,
+		"move_speed": 5.0
+	},
+	"raiders": [],
+	"inputs": [
+		{"t": 0.2, "call": "/root/Inventory.add", "args": ["iron_axe"]},
+		{"t": 0.3, "call": "/root/Inventory.add", "args": ["leather_jerkin"]},
+		{"t": 0.5, "call": "/root/SaveSystem.save_to", "args": ["/tmp/orcs_lair_inv_save.json"], "note": "save"},
+		{"t": 0.7, "call": "/root/Inventory.clear", "note": "wipe"},
+		{"t": 1.0, "call": "/root/SaveSystem.load_from", "args": ["/tmp/orcs_lair_inv_save.json"], "note": "load"}
+	],
+	"pass_criteria": {
+		"champion_alive": true,
+		"inventory_count_eq": 2,
+		"inventory_has": "iron_axe"
+	}
+}
