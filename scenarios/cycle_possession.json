@@ -1,0 +1,23 @@
+{
+	"name": "cycle_possession",
+	"description": "Phase 3 entry: Tab cycles through alive champions in order, then releases. With 2 champions and 2 Tab presses, the second champion should end up possessed. multi_champion=true keeps Champion2 alive (default scenario behavior trims to single champion).",
+	"seed": 1234,
+	"max_duration_s": 3,
+	"multi_champion": true,
+	"champion": {
+		"max_hp": 100,
+		"damage": 14,
+		"move_speed": 5.0
+	},
+	"raiders": [],
+	"inputs": [
+		{"t": 0.3, "press": "possess_toggle", "note": "Tab 1 → possess Champion"},
+		{"t": 0.4, "release": "possess_toggle"},
+		{"t": 1.0, "press": "possess_toggle", "note": "Tab 2 → cycle to Champion2"},
+		{"t": 1.1, "release": "possess_toggle"}
+	],
+	"pass_criteria": {
+		"champion_alive": true,
+		"possessed_name_eq": "Champion2"
+	}
+}

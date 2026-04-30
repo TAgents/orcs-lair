@@ -134,7 +134,12 @@ material_override = SubResource("mat_wall")
 [node name="CameraRig" parent="." instance=ExtResource("2_rig")]
 
 [node name="Champion" parent="." instance=ExtResource("3_champ")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, 0)
+max_hp = 100.0
+damage = 18.0
+
+[node name="Champion2" parent="." instance=ExtResource("3_champ")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 0)
 max_hp = 100.0
 damage = 18.0
 
