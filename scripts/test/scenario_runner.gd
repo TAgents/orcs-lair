@@ -71,6 +71,10 @@ func _apply_champion_overrides() -> void:
 	if ov.has("position"):
 		var p: Array = ov["position"]
 		_champion.global_position = Vector3(float(p[0]), float(p[1]), float(p[2]))
+	# Apply hp last so it overrides the max_hp reset above. Lets scenarios
+	# spawn the champion already damaged (e.g. for regen tests).
+	if ov.has("hp"):
+		_champion.hp = float(ov["hp"])
 
 func _replace_raiders() -> void:
 	var raiders_root: Node3D = _lair.get_node_or_null("Raiders")
@@ -232,6 +236,12 @@ func _evaluate() -> Dictionary:
 		if got != want:
 			ok = false
 			reasons.append("champion_level_eq want=%d got=%d" % [want, got])
+	if crit.has("champion_hp_gte"):
+		var want: float = float(crit["champion_hp_gte"])
+		var got: float = _champion.hp if _champion != null and is_instance_valid(_champion) else 0.0
+		if got < want:
+			ok = false
+			reasons.append("champion_hp_gte want>=%.1f got=%.1f" % [want, got])
 	if crit.has("champion_level_gte"):
 		var want: int = int(crit["champion_level_gte"])
 		var got: int = _query_champion_level()

@@ -1,0 +1,23 @@
+{
+	"name": "sleeping_room_regen",
+	"description": "SleepingRoom heals nearby orcs while a worker is WORKING in it. Place a 2x2 sleeping room (type 0) centered on Worker1's spawn (-4, _, -3). Worker arrives within ~1s, becomes WORKING, room starts regen at 4 hp/s within a 4.5m radius. Champion spawns at hp=10 next to the room and heals back up.",
+	"seed": 9101,
+	"max_duration_s": 8,
+	"champion": {
+		"max_hp": 100,
+		"damage": 18,
+		"move_speed": 5.0,
+		"position": [-3, 0.85, -3],
+		"hp": 10
+	},
+	"raiders": [],
+	"inputs": [
+		{"t": 0.3, "call": "BuildController.place_at_xy", "args": [-5, -4, 0], "note": "place SleepingRoom (type 0) at grid -5,-4 → centered (-4, _, -3) on Worker1"}
+	],
+	"pass_criteria": {
+		"champion_alive": true,
+		"rooms_placed_eq": 1,
+		"workers_at_rooms_eq": 1,
+		"champion_hp_gte": 25
+	}
+}

@@ -13,6 +13,8 @@ class_name PlacedRoom
 
 const TREASURY_GOLD_PER_SEC: float = 1.0
 const TRAINING_DAMAGE_BONUS: float = 10.0
+const SLEEPING_HP_PER_SEC: float = 4.0
+const SLEEPING_HEAL_RADIUS: float = 4.5
 
 @export var room_type: int = 0
 @export var footprint: Vector2i = Vector2i(2, 2)
@@ -57,3 +59,15 @@ func _process(delta: float) -> void:
 		return
 	if room_type == Room.Type.TREASURY:
 		Economy.add_gold(TREASURY_GOLD_PER_SEC * delta)
+	elif room_type == Room.Type.SLEEPING:
+		_regen_nearby(delta)
+
+func _regen_nearby(delta: float) -> void:
+	var amount: float = SLEEPING_HP_PER_SEC * delta
+	var center: Vector3 = global_position
+	for o in get_tree().get_nodes_in_group("orcs"):
+		if o is Orc and o.is_alive():
+			var dx: float = o.global_position.x - center.x
+			var dz: float = o.global_position.z - center.z
+			if dx * dx + dz * dz <= SLEEPING_HEAL_RADIUS * SLEEPING_HEAL_RADIUS:
+				o.heal(amount)
