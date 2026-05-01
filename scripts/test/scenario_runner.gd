@@ -25,6 +25,17 @@ var _lair: Node3D = null
 var _champion: Node = null
 var _initial_raider_count: int = 0
 
+# Screenshot capture. Two opt-in modes (both require running WITHOUT
+# --headless so a render context exists):
+#   "screenshots": [{"t": 1.5, "path": "/tmp/frames/baseline_start.png"}]
+#   "screenshot_every_s": 0.5, "screenshot_dir": "/tmp/frames/baseline"
+# Mixing the two is allowed.
+var _screenshots_pending: Array = []
+var _screenshot_every_s: float = 0.0
+var _screenshot_dir: String = ""
+var _screenshot_next_t: float = 0.0
+var _screenshot_seq: int = 0
+
 func setup(scenario_data: Dictionary, out_path: String, lair_node: Node3D) -> void:
 	scenario = scenario_data
 	output_path = out_path
@@ -34,6 +45,7 @@ func setup(scenario_data: Dictionary, out_path: String, lair_node: Node3D) -> vo
 	_apply_seed()
 	Economy.reset()
 	Inventory.clear()
+	_setup_screenshots()
 	_trim_champions()
 	_apply_champion_overrides()
 	_replace_raiders()
@@ -112,6 +124,47 @@ func _attach_bot() -> void:
 	_bot.load_sequence(scenario.get("inputs", []))
 	_lair.add_child(_bot)
 
+func _setup_screenshots() -> void:
+	_screenshots_pending = scenario.get("screenshots", []).duplicate()
+	_screenshots_pending.sort_custom(func(a, b): return float(a.get("t", 0.0)) < float(b.get("t", 0.0)))
+	_screenshot_every_s = float(scenario.get("screenshot_every_s", 0.0))
+	_screenshot_dir = String(scenario.get("screenshot_dir", ""))
+	_screenshot_next_t = 0.0
+	_screenshot_seq = 0
+	if _screenshot_every_s > 0.0 and _screenshot_dir == "":
+		_screenshot_dir = "/tmp/scenario_frames/" + String(scenario.get("name", "unnamed"))
+	if (_screenshots_pending.size() > 0 or _screenshot_every_s > 0.0) and _is_headless():
+		print("[runner] note: screenshots requested but running --headless; capture disabled")
+
+func _is_headless() -> bool:
+	# Headless platform exposes no rendering driver — viewport texture is unusable.
+	return DisplayServer.get_name() == "headless"
+
+func _capture_screenshot(path: String) -> void:
+	if path == "" or _is_headless():
+		return
+	var img: Image = get_viewport().get_texture().get_image()
+	if img == null:
+		return
+	var dir_path: String = path.get_base_dir()
+	if dir_path != "":
+		DirAccess.make_dir_recursive_absolute(dir_path)
+	var err: int = img.save_png(path)
+	if err == OK:
+		print("[runner] screenshot ", path)
+	else:
+		push_warning("[runner] screenshot failed (%d) → %s" % [err, path])
+
+func _step_screenshots() -> void:
+	while _screenshots_pending.size() > 0 and float(_screenshots_pending[0].get("t", 0.0)) <= _t:
+		var entry: Dictionary = _screenshots_pending.pop_front()
+		_capture_screenshot(String(entry.get("path", "")))
+	if _screenshot_every_s > 0.0 and _t >= _screenshot_next_t:
+		var path: String = "%s/frame_%05d.png" % [_screenshot_dir, _screenshot_seq]
+		_capture_screenshot(path)
+		_screenshot_seq += 1
+		_screenshot_next_t = float(_screenshot_seq) * _screenshot_every_s
+
 func _wire_signals() -> void:
 	# Runner owns scenario end-detection (independent of interactive Game.end_game).
 	if _champion != null:
@@ -129,6 +182,7 @@ func _physics_process(delta: float) -> void:
 	if _ended:
 		return
 	_t += delta
+	_step_screenshots()
 	if _t >= max_duration_s:
 		_finish(false, "timeout")
 

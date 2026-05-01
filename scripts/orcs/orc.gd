@@ -55,11 +55,12 @@ func is_alive() -> bool:
 #
 # We can't reference GLB scenes from .tscn files because Godot --headless hangs
 # at scene-load when GLB textures need GPU initialization. Workaround: load the
-# GLB at runtime and replace the placeholder capsule "Mesh" child. Skipped in
-# scenario mode so headless tests stay deterministic.
+# GLB at runtime and replace the placeholder capsule "Mesh" child. Skipped only
+# when there's no rendering context (--headless / "headless" DisplayServer) so
+# CI stays deterministic AND interactive scenarios get the real models.
 
 func _swap_in_visual_model(model_path: String, scale: float = 2.0) -> void:
-	if _is_scenario_mode():
+	if DisplayServer.get_name() == "headless":
 		return
 	if not ResourceLoader.exists(model_path):
 		return
@@ -79,9 +80,3 @@ func _swap_in_visual_model(model_path: String, scale: float = 2.0) -> void:
 	instance.name = "Mesh"
 	add_child(instance)
 	(instance as Node3D).scale = Vector3(scale, scale, scale)
-
-func _is_scenario_mode() -> bool:
-	for a in OS.get_cmdline_user_args():
-		if a.begins_with("--scenario="):
-			return true
-	return false
