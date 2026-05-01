@@ -9,6 +9,7 @@ extends CanvasLayer
 @onready var level_label: Label = $Root/LevelLabel
 @onready var skills_label: Label = $Root/SkillsLabel
 @onready var wave_label: Label = $Root/WaveLabel
+@onready var attr_label: Label = $Root/AttrLabel
 
 var _champion: Champion = null
 var _build_controller: BuildController = null
@@ -35,6 +36,13 @@ func _process(_delta: float) -> void:
 		hp_bar.value = _champion.hp
 		hp_label.text = "%d / %d" % [int(_champion.hp), int(_champion.max_hp)]
 		level_label.text = "Lv %d   XP %d/%d" % [_champion.level, _champion.xp, _champion.xp_threshold()]
+		# Attribute badge: only visible when there are unspent points to spend.
+		var pts: int = int(_champion.attribute_points) if "attribute_points" in _champion else 0
+		if pts > 0:
+			attr_label.visible = true
+			attr_label.text = "ATTR +%d — [U]Str [I]Vit [O]Agi" % pts
+		else:
+			attr_label.visible = false
 
 	# Skill bar: visible only while possessing, sourced from whichever
 	# champion is currently being controlled (so cooldowns reflect what
