@@ -1,4 +1,4 @@
-[gd_scene load_steps=45 format=3]
+[gd_scene load_steps=50 format=3]
 
 [ext_resource type="Script" path="res://scripts/lair.gd" id="1_lair"]
 [ext_resource type="PackedScene" path="res://scenes/cameras/camera_rig.tscn" id="2_rig"]
@@ -15,6 +15,7 @@
 [ext_resource type="Script" path="res://scripts/effects/outside_floor_tiler.gd" id="13_outfloor"]
 [ext_resource type="Script" path="res://scripts/effects/village_wall_tiler.gd" id="14_village"]
 [ext_resource type="Script" path="res://scripts/effects/building_tiler.gd" id="15_buildings"]
+[ext_resource type="PackedScene" path="res://scenes/civilians/civilian.tscn" id="16_civilian"]
 
 [sub_resource type="ProceduralSkyMaterial" id="sky_mat"]
 sky_top_color = Color(0.12, 0.10, 0.18, 1)
@@ -469,6 +470,32 @@ material_override = SubResource("mat_rock")
 transform = Transform3D(0.95, 0, 0, 0, 0.7, 0, 0, 0, 0.95, 30, 0.35, 60)
 mesh = SubResource("mesh_rock_block")
 material_override = SubResource("mat_rock")
+
+[node name="Civilians" type="Node3D" parent="Outside"]
+
+[node name="Civilian1" parent="Outside/Civilians" instance=ExtResource("16_civilian")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, 72)
+
+[node name="Civilian2" parent="Outside/Civilians" instance=ExtResource("16_civilian")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, 73)
+
+[node name="Civilian3" parent="Outside/Civilians" instance=ExtResource("16_civilian")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 0, 84)
+
+[node name="Civilian4" parent="Outside/Civilians" instance=ExtResource("16_civilian")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, 86)
+
+[node name="Civilian5" parent="Outside/Civilians" instance=ExtResource("16_civilian")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 82)
+
+[node name="Civilian6" parent="Outside/Civilians" instance=ExtResource("16_civilian")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, 95)
+
+[node name="Civilian7" parent="Outside/Civilians" instance=ExtResource("16_civilian")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 97)
+
+[node name="Civilian8" parent="Outside/Civilians" instance=ExtResource("16_civilian")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 78)
 
 [node name="OutsideBoundary" type="Node3D" parent="Outside"]
 
