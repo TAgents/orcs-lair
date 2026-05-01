@@ -1,0 +1,19 @@
+{
+	"name": "worker_class",
+	"description": "Direction A PR 5: workers earn a class after WORKER_CLASS_THRESHOLD=8s WORKING in a class-bearing room. Place a Mine on Worker1's spawn, run for 12s. Worker arrives ~1s, accrues class progress for ~8s, becomes a 'Miner' around t=9. With the 1.5× class bonus, ore production after class-up is 0.75/s. Pass: 1 worker is classed.",
+	"seed": 1414,
+	"max_duration_s": 12,
+	"champion": {
+		"max_hp": 100,
+		"damage": 14,
+		"move_speed": 5.0
+	},
+	"raiders": [],
+	"inputs": [
+		{"t": 0.3, "call": "BuildController.place_at_xy", "args": [-5, -4, 3], "note": "Mine at Worker1's spawn"}
+	],
+	"pass_criteria": {
+		"champion_alive": true,
+		"workers_classed_eq": 1
+	}
+}

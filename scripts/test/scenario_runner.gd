@@ -284,6 +284,15 @@ func _evaluate() -> Dictionary:
 		if got >= want:
 			ok = false
 			reasons.append("champion_z_lt want<%.2f got=%.2f" % [want, got])
+	if crit.has("workers_classed_eq"):
+		var want: int = int(crit["workers_classed_eq"])
+		var got: int = 0
+		for w in _lair.get_tree().get_nodes_in_group("workers"):
+			if w is Worker and w.is_alive() and String(w.worker_class) != "":
+				got += 1
+		if got != want:
+			ok = false
+			reasons.append("workers_classed_eq want=%d got=%d" % [want, got])
 	if crit.has("ore_eq"):
 		var want: int = int(crit["ore_eq"])
 		if Economy.ore != want:
