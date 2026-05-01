@@ -159,7 +159,9 @@ func _begin_raid() -> void:
 	var chests: Array = get_tree().get_nodes_in_group("treasure_chests")
 	_raid_chests_total = chests.size()
 	for c in chests:
-		# Skip already-looted chests from a prior raid; only count fresh ones.
+		# Re-arm + scale gold_value by raids_completed before the raid starts.
+		if c.has_method("scale_for_raid"):
+			c.scale_for_raid(raids_completed)
 		if c.has_signal("looted") and not c.looted.is_connected(_on_raid_chest_looted):
 			c.looted.connect(_on_raid_chest_looted)
 	_spawn_city_guards()

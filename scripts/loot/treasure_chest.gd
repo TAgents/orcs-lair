@@ -18,12 +18,16 @@ signal looted(chest: TreasureChest, gold: int, items: Array)
 @export var visual_scale: float = 1.4
 
 var _looted: bool = false
+# Captured at _ready so raid-loot scaling stays referenced to the .tscn
+# inspector value rather than compounding across multiple raids.
+var _base_gold_value: int = 0
 
 @onready var trigger: Area3D = $Trigger
 @onready var visual: MeshInstance3D = $Visual
 
 func _ready() -> void:
 	add_to_group("treasure_chests")
+	_base_gold_value = gold_value
 	trigger.body_entered.connect(_on_body_entered)
 	# Swap in the Kenney chest visual when there's a render context, mirroring
 	# Orc._swap_in_visual_model. Placeholder cube stays in headless / on miss.
@@ -41,6 +45,16 @@ func _ready() -> void:
 	visual.visible = false
 	add_child(instance)
 	(instance as Node3D).scale = Vector3(visual_scale, visual_scale, visual_scale)
+
+# Called by Lair._begin_raid before each raid. Re-arms the chest (re-shows
+# the visual, re-enables the trigger, clears _looted) and bumps gold_value
+# by raid_count * 50% above the .tscn baseline. Items are unchanged here —
+# upgrading the per-tier item pool is a future PR.
+func scale_for_raid(raid_count: int) -> void:
+	_looted = false
+	visible = true
+	trigger.set_deferred("monitoring", true)
+	gold_value = int(float(_base_gold_value) * (1.0 + 0.5 * float(raid_count)))
 
 func _on_body_entered(body: Node) -> void:
 	if _looted:

@@ -1,0 +1,24 @@
+{
+	"name": "raid_loot_scaling",
+	"description": "Phase 5 risk/reward: chests scale gold_value by 50% per completed raid. Set raids_completed=2 (1.0 mult, 2× base), trigger raid via M+2, teleport champion onto south chest (base 100g → 200g), loot. Final gold = 100 (start) + 200 = 300.",
+	"seed": 9090,
+	"max_duration_s": 4,
+	"champion": {
+		"max_hp": 100,
+		"damage": 18,
+		"move_speed": 5.0
+	},
+	"raiders": [],
+	"inputs": [
+		{"t": 0.2, "call": "/root/Lair.set", "args": ["raids_completed", 2], "note": "pretend 2 prior raids"},
+		{"t": 0.4, "press": "world_map_toggle"},
+		{"t": 0.5, "release": "world_map_toggle"},
+		{"t": 0.7, "press": "world_dest_raid"},
+		{"t": 0.8, "release": "world_dest_raid"},
+		{"t": 1.5, "call": "Champion.teleport", "args": [12, 0.85, 95.0], "note": "drop onto ChestBuildingS (base 100g → 200g scaled)"}
+	],
+	"pass_criteria": {
+		"champion_alive": true,
+		"gold_eq": 300
+	}
+}
