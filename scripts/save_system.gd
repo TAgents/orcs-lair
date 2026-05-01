@@ -4,26 +4,28 @@ extends Node
 # author by hand for tests). Persists Economy.gold, placed rooms, and
 # champion progression (level + xp + max_hp + damage).
 #
-# Format v4:
+# Format v5:
 #   {
-#     "version": 4,
+#     "version": 5,
 #     "gold": 100,
 #     "inventory": ["iron_axe", "leather_jerkin"],
 #     "rooms": [{"x": -4, "z": -4, "type": 0}, …],
 #     "champions": [
-#       {"name": "Champion",  "level": 3, "xp": 12, "max_hp": 140, "damage": 22, "gear": ["iron_axe", "warrior_charm"]},
-#       {"name": "Champion2", "level": 1, "xp":  0, "max_hp": 100, "damage": 18, "gear": []}
+#       {"name": "Champion",  "level": 3, "xp": 12, "max_hp": 140, "damage": 22,
+#        "gear": ["iron_axe", "warrior_charm"],
+#        "attr_points": 1, "str": 2, "vit": 0, "agi": 0}
 #     ]
 #   }
 #
-# max_hp is saved EXCLUSIVE of gear bonuses (so it represents the level/base
-# value). On load, we unequip everything first, set the saved max_hp, then
-# re-equip — gear bonuses re-apply cleanly without double-counting.
+# max_hp / damage / move_speed are saved as their final aggregate values
+# (already include any STR/VIT/AGI bonuses from spent attribute points).
+# On load we set those final values directly, then restore attr_points and
+# the per-stat counters — no reapply, no double-count.
 #
-# Older saves load cleanly: v1 (no "champions"), v2 (no "gear"), v3 (no
-# "inventory") all default missing fields to empty.
+# Backward-compatible: v1..v4 saves load cleanly. Missing fields default to
+# zero (no attribute spend, no inventory, no gear, etc.).
 
-const SAVE_FORMAT_VERSION: int = 4
+const SAVE_FORMAT_VERSION: int = 5
 
 signal saved(path: String)
 signal loaded(path: String)
@@ -81,6 +83,10 @@ func _gather_state() -> Dictionary:
 				"max_hp": c.max_hp - c.gear_max_hp_bonus_total(),
 				"damage": c.damage,
 				"gear": c.gear_item_ids(),
+				"attr_points": c.attribute_points,
+				"str": c.str_pts,
+				"vit": c.vit_pts,
+				"agi": c.agi_pts,
 			})
 	return {
 		"version": SAVE_FORMAT_VERSION,
@@ -116,6 +122,10 @@ func _apply_state(data: Dictionary) -> void:
 		champ.xp = int(c_data.get("xp", 0))
 		champ.max_hp = float(c_data.get("max_hp", champ.max_hp))
 		champ.damage = float(c_data.get("damage", champ.damage))
+		champ.attribute_points = int(c_data.get("attr_points", 0))
+		champ.str_pts = int(c_data.get("str", 0))
+		champ.vit_pts = int(c_data.get("vit", 0))
+		champ.agi_pts = int(c_data.get("agi", 0))
 		for item_id in c_data.get("gear", []):
 			champ.equip(String(item_id))
 		champ.hp = champ.max_hp  # full heal on load

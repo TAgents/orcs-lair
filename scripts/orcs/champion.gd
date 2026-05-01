@@ -20,15 +20,24 @@ class_name Champion
 @onready var hitbox_shape: CollisionShape3D = $Hitbox/CollisionShape3D
 
 # RPG progression. XP threshold per level: 50 × current level.
-# Level-up grants +20 max_hp, +2 base damage, and a full heal.
+# Level-up grants the fixed flat bonuses below + 1 unspent attribute point.
+# Spending points raises STR/VIT/AGI (damage/max_hp/move_speed).
 @export var level: int = 1
 @export var xp: int = 0
+@export var attribute_points: int = 0
+@export var str_pts: int = 0
+@export var vit_pts: int = 0
+@export var agi_pts: int = 0
 const XP_PER_LEVEL_BASE: int = 50
 const LEVEL_UP_HP_BONUS: int = 20
 const LEVEL_UP_DAMAGE_BONUS: int = 2
+const STR_DAMAGE_PER_POINT: float = 1.0
+const VIT_MAX_HP_PER_POINT: float = 5.0
+const AGI_MOVE_SPEED_PER_POINT: float = 0.3
 
 signal xp_gained(new_xp: int, threshold: int)
 signal leveled_up(new_level: int)
+signal attribute_spent(stat: String, new_total: int)
 
 var _cleave_timer: float = 0.0
 var _normal_hitbox_size: Vector3 = Vector3.ZERO
@@ -413,8 +422,39 @@ func _level_up() -> void:
 	level += 1
 	max_hp += float(LEVEL_UP_HP_BONUS)
 	damage += float(LEVEL_UP_DAMAGE_BONUS)
+	attribute_points += 1
 	hp = max_hp  # full heal on level-up
 	leveled_up.emit(level)
+
+# Spend one unspent attribute point on STR/VIT/AGI. Returns true on success;
+# false if no points available or stat unknown. Each spent point raises the
+# matching base stat by a fixed delta — STR damage, VIT max_hp (with heal),
+# AGI move_speed.
+func spend_attribute_point(stat: String) -> bool:
+	if attribute_points <= 0:
+		return false
+	var key: String = stat.to_lower()
+	match key:
+		"str":
+			str_pts += 1
+			damage += STR_DAMAGE_PER_POINT
+		"vit":
+			vit_pts += 1
+			max_hp += VIT_MAX_HP_PER_POINT
+			hp = min(max_hp, hp + VIT_MAX_HP_PER_POINT)
+		"agi":
+			agi_pts += 1
+			move_speed += AGI_MOVE_SPEED_PER_POINT
+		_:
+			return false
+	attribute_points -= 1
+	var new_total: int = 0
+	match key:
+		"str": new_total = str_pts
+		"vit": new_total = vit_pts
+		"agi": new_total = agi_pts
+	attribute_spent.emit(key, new_total)
+	return true
 
 # Test/debug: reset XP and level back to 1/0. Doesn't undo accumulated
 # max_hp / damage from prior level-ups (those are stat changes, not
@@ -422,6 +462,10 @@ func _level_up() -> void:
 func reset_progression() -> void:
 	level = 1
 	xp = 0
+	attribute_points = 0
+	str_pts = 0
+	vit_pts = 0
+	agi_pts = 0
 
 func _nearest(group: String) -> Node3D:
 	var best: Node3D = null
