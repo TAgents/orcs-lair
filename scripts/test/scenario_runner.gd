@@ -46,6 +46,7 @@ func setup(scenario_data: Dictionary, out_path: String, lair_node: Node3D) -> vo
 	Economy.reset()
 	Inventory.clear()
 	Clock.reset()
+	Research.reset()
 	_setup_screenshots()
 	_trim_champions()
 	_apply_champion_overrides()
@@ -284,6 +285,16 @@ func _evaluate() -> Dictionary:
 		if got >= want:
 			ok = false
 			reasons.append("champion_z_lt want<%.2f got=%.2f" % [want, got])
+	if crit.has("research_points_gte"):
+		var want: int = int(crit["research_points_gte"])
+		if Research.points < want:
+			ok = false
+			reasons.append("research_points_gte want>=%d got=%d" % [want, Research.points])
+	if crit.has("research_unlocked_has"):
+		var want: String = String(crit["research_unlocked_has"])
+		if not Research.unlocked.has(want):
+			ok = false
+			reasons.append("research_unlocked_has want=%s unlocked=%s" % [want, str(Research.unlocked)])
 	if crit.has("food_eq"):
 		var want: int = int(crit["food_eq"])
 		if Economy.food != want:

@@ -25,7 +25,7 @@ extends Node
 # Backward-compatible: v1..v5 saves load cleanly. Missing fields default to
 # zero across the board.
 
-const SAVE_FORMAT_VERSION: int = 9
+const SAVE_FORMAT_VERSION: int = 10
 
 signal saved(path: String)
 signal loaded(path: String)
@@ -101,6 +101,8 @@ func _gather_state() -> Dictionary:
 		"raids_completed": raids_completed,
 		"day_index": Clock.day_index,
 		"time_of_day": Clock.time_of_day,
+		"research_points": Research.points,
+		"research_unlocked": Research.unlocked.duplicate(),
 		"rooms": rooms,
 		"champions": champs,
 	}
@@ -118,6 +120,9 @@ func _apply_state(data: Dictionary) -> void:
 		Inventory.add(String(item_id))
 	# Restore day/time. Older saves (v1..v6) default to day 1 / sunrise.
 	Clock.reset(int(data.get("day_index", 1)), float(data.get("time_of_day", 0.25)))
+	# Research state — restore (don't re-apply branches; champion stats
+	# in this save already include the buffs).
+	Research.restore(int(data.get("research_points", 0)), data.get("research_unlocked", []))
 	var lair: Node = get_tree().root.get_node_or_null("Lair")
 	if lair != null and "raids_completed" in lair:
 		lair.raids_completed = int(data.get("raids_completed", 0))

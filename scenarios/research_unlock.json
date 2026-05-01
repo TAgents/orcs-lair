@@ -1,0 +1,22 @@
+{
+	"name": "research_unlock",
+	"description": "Direction A PR 7: Library produces research, branches unlock permanent champion buffs. Seed Research.points=60, unlock 'berserker' (cost 50) → champion damage scales 1.2× from 18 to 21.6 (rounded). Verify points decremented to 10 and damage check via champion_damage_eq.",
+	"seed": 1717,
+	"max_duration_s": 2,
+	"champion": {
+		"max_hp": 100,
+		"damage": 18,
+		"move_speed": 5.0
+	},
+	"raiders": [],
+	"inputs": [
+		{"t": 0.1, "call": "/root/Research.set", "args": ["points", 60]},
+		{"t": 0.4, "call": "/root/Research.unlock", "args": ["berserker"]}
+	],
+	"pass_criteria": {
+		"champion_alive": true,
+		"research_unlocked_has": "berserker",
+		"research_points_gte": 10,
+		"champion_damage_eq": 21.6
+	}
+}
