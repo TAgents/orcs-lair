@@ -1,6 +1,6 @@
 extends Node
 
-enum Mode { LAIR, POSSESSING, BUILDING }
+enum Mode { LAIR, POSSESSING, BUILDING, WORLD_MAP }
 
 signal mode_changed(new_mode: Mode)
 signal game_over(victory: bool)
@@ -20,6 +20,14 @@ func toggle_build() -> void:
 		set_mode(Mode.LAIR, null)
 	else:
 		set_mode(Mode.BUILDING, null)
+
+# World-map: only enterable from LAIR (not while possessing or building).
+# Pressing M from WORLD_MAP returns to LAIR.
+func toggle_world_map() -> void:
+	if mode == Mode.WORLD_MAP:
+		set_mode(Mode.LAIR, null)
+	elif mode == Mode.LAIR:
+		set_mode(Mode.WORLD_MAP, null)
 
 func toggle_possession(target: Node) -> void:
 	if mode == Mode.POSSESSING and possessed == target:

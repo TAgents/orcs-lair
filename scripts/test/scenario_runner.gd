@@ -277,6 +277,12 @@ func _evaluate() -> Dictionary:
 		if Economy.gold != want:
 			ok = false
 			reasons.append("gold_eq want=%d got=%d" % [want, Economy.gold])
+	if crit.has("mode_eq"):
+		var want: String = String(crit["mode_eq"])
+		var got: String = _query_mode_name()
+		if got != want:
+			ok = false
+			reasons.append("mode_eq want=%s got=%s" % [want, got])
 	if crit.has("possessed_name_eq"):
 		var want: String = String(crit["possessed_name_eq"])
 		var got: String = _query_possessed_name()
@@ -334,6 +340,14 @@ func _query_champion_damage() -> float:
 	if _champion != null and is_instance_valid(_champion) and _champion.has_method("effective_damage"):
 		return float(_champion.effective_damage())
 	return 0.0
+
+func _query_mode_name() -> String:
+	match Game.mode:
+		Game.Mode.LAIR: return "LAIR"
+		Game.Mode.POSSESSING: return "POSSESSING"
+		Game.Mode.BUILDING: return "BUILDING"
+		Game.Mode.WORLD_MAP: return "WORLD_MAP"
+	return "UNKNOWN"
 
 func _query_possessed_name() -> String:
 	if Game.possessed != null and is_instance_valid(Game.possessed):

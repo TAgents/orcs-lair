@@ -67,12 +67,38 @@ func _unhandled_input(event: InputEvent) -> void:
 		Game.toggle_build()
 	elif event.is_action_pressed("build_cancel") and Game.mode == Game.Mode.BUILDING:
 		Game.set_mode(Game.Mode.LAIR, null)
+	elif event.is_action_pressed("world_map_toggle") and Game.mode != Game.Mode.POSSESSING and Game.mode != Game.Mode.BUILDING:
+		Game.toggle_world_map()
+	elif event.is_action_pressed("world_dest_lair") and Game.mode == Game.Mode.WORLD_MAP:
+		Game.set_mode(Game.Mode.LAIR, null)
+	elif event.is_action_pressed("world_dest_raid") and Game.mode == Game.Mode.WORLD_MAP:
+		_start_raid()
 	elif event.is_action_pressed("quick_save"):
 		var ok := SaveSystem.save_to(QUICKSAVE_PATH)
 		print("[lair] quicksave → %s : %s" % [QUICKSAVE_PATH, "OK" if ok else "FAILED"])
 	elif event.is_action_pressed("quick_load"):
 		var ok := SaveSystem.load_from(QUICKSAVE_PATH)
 		print("[lair] quickload ← %s : %s" % [QUICKSAVE_PATH, "OK" if ok else "FAILED"])
+
+# World-map "Raid City": teleport the first alive champion just outside the
+# lair's south entrance (top of the city path), facing south, and switch to
+# POSSESSING so the player drives in real-time. Public so probe_bot can call
+# it directly from scenarios that don't want to script the M-then-2 chain.
+func start_raid() -> void:
+	_start_raid()
+
+func _start_raid() -> void:
+	var champion: Champion = null
+	for c in _champions:
+		if is_instance_valid(c) and c.is_alive():
+			champion = c
+			break
+	if champion == null:
+		return
+	champion.teleport(0.0, 0.85, 14.0)
+	# Face the city (camera will end up north of champion looking south).
+	champion.rotation.y = PI
+	Game.set_mode(Game.Mode.POSSESSING, champion)
 
 # Tab cycles: NONE → champion[0] → champion[1] → … → champion[N-1] → NONE → ...
 # Skips dead/freed champions automatically.
