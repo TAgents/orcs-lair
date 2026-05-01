@@ -81,6 +81,11 @@ const QUICKSAVE_PATH: String = "user://quicksave.json"
 func _unhandled_input(event: InputEvent) -> void:
 	# ProbeBot drives input via Input.action_press in scenarios, so this
 	# handler runs even in scenario mode — that's intentional.
+	# Restart key works from any state, including post-game-over, so the
+	# player can recover from "LAIR FALLEN" without quitting the process.
+	if event.is_action_pressed("restart_scene"):
+		get_tree().reload_current_scene()
+		return
 	if _ended:
 		return
 	if event.is_action_pressed("possess_toggle"):
@@ -243,6 +248,10 @@ func _return_from_raid() -> void:
 		champion.teleport(0.0, 0.85, 0.0)
 		champion.rotation.y = 0.0
 	Game.set_mode(Game.Mode.LAIR, null)
+	# Auto-quicksave on return so raid progress (gold, looted gear,
+	# raids_completed) survives a crash or accidental window close.
+	var ok: bool = SaveSystem.save_to(QUICKSAVE_PATH)
+	print("[lair] auto-saved on raid return : %s" % ("OK" if ok else "FAILED"))
 
 # Test-only hatch: instantly satisfy the raid-complete conditions and
 # free any living city guards so the AI champion has no targets to chase

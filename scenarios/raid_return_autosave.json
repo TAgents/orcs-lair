@@ -1,0 +1,29 @@
+{
+	"name": "raid_return_autosave",
+	"description": "Auto-save fires on _return_from_raid. Setup: gold=250 at scenario start. Trigger raid via M+2, complete via test hatch, press M to return → auto-save writes user://quicksave.json with gold=250. Wipe Economy.gold to 0, load from same path, expect gold restored to 250.",
+	"seed": 6611,
+	"max_duration_s": 4,
+	"champion": {
+		"max_hp": 100,
+		"damage": 18,
+		"move_speed": 5.0
+	},
+	"raiders": [],
+	"inputs": [
+		{"t": 0.1, "call": "/root/Economy.set", "args": ["gold", 250]},
+		{"t": 0.3, "press": "world_map_toggle"},
+		{"t": 0.4, "release": "world_map_toggle"},
+		{"t": 0.6, "press": "world_dest_raid"},
+		{"t": 0.7, "release": "world_dest_raid"},
+		{"t": 1.0, "call": "/root/Lair.complete_raid_for_test"},
+		{"t": 1.4, "press": "world_map_toggle", "note": "M while pending → return + auto-save"},
+		{"t": 1.5, "release": "world_map_toggle"},
+		{"t": 1.9, "call": "/root/Economy.set", "args": ["gold", 0]},
+		{"t": 2.2, "call": "/root/SaveSystem.load_from", "args": ["user://quicksave.json"], "note": "load auto-save → gold restored"}
+	],
+	"pass_criteria": {
+		"champion_alive": true,
+		"mode_eq": "LAIR",
+		"gold_eq": 250
+	}
+}
