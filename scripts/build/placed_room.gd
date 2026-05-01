@@ -17,6 +17,7 @@ const SLEEPING_HP_PER_SEC: float = 4.0
 const SLEEPING_HEAL_RADIUS: float = 4.5
 const MINE_ORE_PER_SEC: float = 0.5
 const KITCHEN_FOOD_PER_SEC: float = 0.5
+const LIBRARY_RESEARCH_PER_SEC: float = 0.3
 # Per-room class match: when the assigned worker has the matching class,
 # room output / craft speed is multiplied by this. Trainer/Banker/Miner/
 # Smith/Cook are awarded by Worker._advance_class_progress.
@@ -27,6 +28,7 @@ const CLASS_FOR_ROOM_TYPE: Dictionary = {
 	Room.Type.MINE: "Miner",
 	Room.Type.FORGE: "Smith",
 	Room.Type.KITCHEN: "Cook",
+	Room.Type.LIBRARY: "Scholar",
 }
 const FORGE_CRAFT_TIME: float = 6.0
 const FORGE_ORE_COST: int = 1
@@ -94,6 +96,8 @@ func _process(delta: float) -> void:
 		_step_forge(delta * mult)
 	elif room_type == Room.Type.KITCHEN:
 		Economy.add_food(KITCHEN_FOOD_PER_SEC * delta * mult)
+	elif room_type == Room.Type.LIBRARY:
+		Research.add_points(LIBRARY_RESEARCH_PER_SEC * delta * mult)
 
 # 1.5× when the assigned worker's class matches this room's type, 1.0
 # otherwise. Sleeping rooms have no class bonus (no class is awarded for
