@@ -1,0 +1,23 @@
+{
+	"name": "forge_craft",
+	"description": "Direction A PR 3: Forge consumes 1 ore per FORGE_CRAFT_TIME (6s) and pushes an item into Inventory. Seed ore=5, place a Forge (type 4) on Worker1's spawn, run for 9s. Worker arrives ~1s, first craft completes ~t=7.5. Final: Inventory holds 1 item, ore down to 4.",
+	"seed": 1313,
+	"max_duration_s": 9,
+	"champion": {
+		"max_hp": 100,
+		"damage": 14,
+		"move_speed": 5.0
+	},
+	"raiders": [],
+	"inputs": [
+		{"t": 0.1, "call": "/root/Economy.set", "args": ["ore", 5], "note": "seed ore stockpile"},
+		{"t": 0.3, "call": "BuildController.place_at_xy", "args": [-5, -4, 4], "note": "Forge (50g, 50 left)"}
+	],
+	"pass_criteria": {
+		"champion_alive": true,
+		"rooms_placed_eq": 1,
+		"workers_at_rooms_eq": 1,
+		"ore_eq": 4,
+		"inventory_count_eq": 1
+	}
+}

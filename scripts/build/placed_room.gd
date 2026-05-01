@@ -16,6 +16,12 @@ const TRAINING_DAMAGE_BONUS: float = 10.0
 const SLEEPING_HP_PER_SEC: float = 4.0
 const SLEEPING_HEAL_RADIUS: float = 4.5
 const MINE_ORE_PER_SEC: float = 0.5
+const FORGE_CRAFT_TIME: float = 6.0
+const FORGE_ORE_COST: int = 1
+# Round-robin output. Forge alternates rusty_axe / leather_jerkin so a
+# single Forge stocks Inventory with both tier-0 weapon and armor over
+# time without needing extra config.
+const FORGE_OUTPUTS: Array[String] = ["rusty_axe", "leather_jerkin"]
 
 @export var room_type: int = 0
 @export var footprint: Vector2i = Vector2i(2, 2)
@@ -23,6 +29,8 @@ const MINE_ORE_PER_SEC: float = 0.5
 
 var _assigned_worker: Node = null
 var _placed_at_msec: int = 0
+var _forge_progress: float = 0.0
+var _forge_outputs_made: int = 0
 
 signal worker_assigned(worker: Node)
 signal worker_unassigned(worker: Node)
@@ -69,6 +77,24 @@ func _process(delta: float) -> void:
 		_regen_nearby(delta)
 	elif room_type == Room.Type.MINE:
 		Economy.add_ore(MINE_ORE_PER_SEC * delta)
+	elif room_type == Room.Type.FORGE:
+		_step_forge(delta)
+
+func _step_forge(delta: float) -> void:
+	# Smith only progresses when the lair has ore to feed in. When progress
+	# fills the bar, consume one ore unit and push an item into Inventory,
+	# alternating weapon/armor so a solo Forge eventually produces both.
+	if Economy.ore < FORGE_ORE_COST:
+		_forge_progress = 0.0
+		return
+	_forge_progress += delta
+	if _forge_progress < FORGE_CRAFT_TIME:
+		return
+	_forge_progress -= FORGE_CRAFT_TIME
+	Economy.ore = Economy.ore - FORGE_ORE_COST
+	var idx: int = _forge_outputs_made % FORGE_OUTPUTS.size()
+	Inventory.add(FORGE_OUTPUTS[idx])
+	_forge_outputs_made += 1
 
 func _regen_nearby(delta: float) -> void:
 	var amount: float = SLEEPING_HP_PER_SEC * delta
