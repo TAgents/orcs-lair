@@ -1,0 +1,22 @@
+{
+	"name": "attr_spend_keys",
+	"description": "Phase 4 UI: U/I/O keys spend attribute points on STR/VIT/AGI via lair.gd._spend_attr_on_named. Setup: gain_xp 50 → level 2, +1 attr_point, base damage 18+2=20. Press U → STR consumed, damage becomes 21, points back to 0.",
+	"seed": 4848,
+	"max_duration_s": 2,
+	"champion": {
+		"max_hp": 100,
+		"damage": 18,
+		"move_speed": 5.0
+	},
+	"raiders": [],
+	"inputs": [
+		{"t": 0.3, "call": "/root/Lair/Champion.gain_xp", "args": [50], "note": "level 2, 1 unspent point"},
+		{"t": 0.6, "press": "attr_str", "note": "U → spend on STR"},
+		{"t": 0.7, "release": "attr_str"}
+	],
+	"pass_criteria": {
+		"champion_alive": true,
+		"champion_level_eq": 2,
+		"champion_damage_eq": 21
+	}
+}

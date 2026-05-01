@@ -100,12 +100,26 @@ func _unhandled_input(event: InputEvent) -> void:
 		Game.set_mode(Game.Mode.LAIR, null)
 	elif event.is_action_pressed("world_dest_raid") and Game.mode == Game.Mode.WORLD_MAP:
 		_start_raid()
+	elif event.is_action_pressed("attr_str"):
+		_spend_attr_on_named("str")
+	elif event.is_action_pressed("attr_vit"):
+		_spend_attr_on_named("vit")
+	elif event.is_action_pressed("attr_agi"):
+		_spend_attr_on_named("agi")
 	elif event.is_action_pressed("quick_save"):
 		var ok := SaveSystem.save_to(QUICKSAVE_PATH)
 		print("[lair] quicksave → %s : %s" % [QUICKSAVE_PATH, "OK" if ok else "FAILED"])
 	elif event.is_action_pressed("quick_load"):
 		var ok := SaveSystem.load_from(QUICKSAVE_PATH)
 		print("[lair] quickload ← %s : %s" % [QUICKSAVE_PATH, "OK" if ok else "FAILED"])
+
+# Routes attr_str/vit/agi key presses to the first alive Champion (the one
+# the HUD tracks). No-op if that champion has zero unspent points.
+func _spend_attr_on_named(stat: String) -> void:
+	for c in _champions:
+		if is_instance_valid(c) and c.is_alive():
+			c.spend_attribute_point(stat)
+			return
 
 # World-map "Raid City": teleport the first alive champion just outside the
 # lair's south entrance (top of the city path), facing south, and switch to
