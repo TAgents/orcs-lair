@@ -14,6 +14,11 @@ signal damaged(orc: Orc, amount: float)
 const GRAVITY: float = 20.0
 var _vulnerable: bool = true
 
+# AnimationPlayer of the swapped-in GLB model (Kenney Mini Dungeon ships
+# rigged characters with idle/walk/sprint/attack-melee-*/die/interact-*).
+# Null when running --headless (no model loaded).
+var _anim_player: AnimationPlayer = null
+
 func take_damage(amount: float, _source: Node = null) -> void:
 	if not _vulnerable or hp <= 0.0:
 		return
@@ -31,13 +36,41 @@ func _die() -> void:
 	died.emit(self)
 	set_physics_process(false)
 	$CollisionShape3D.disabled = true
-	# Visual: tip over and fade. Keep it cheap.
-	var mesh: Node3D = get_node_or_null("Mesh")
-	if mesh:
-		var tween := create_tween()
-		tween.tween_property(mesh, "rotation:x", deg_to_rad(-85.0), 0.3)
+	# Prefer the Kenney 'die' animation when present; fall back to a tip-over
+	# tween for headless and any model that lacks the animation.
+	if _anim_player != null and _anim_player.has_animation("die"):
+		_anim_player.play("die")
+	else:
+		var mesh: Node3D = get_node_or_null("Mesh")
+		if mesh:
+			var tween := create_tween()
+			tween.tween_property(mesh, "rotation:x", deg_to_rad(-85.0), 0.3)
 	await get_tree().create_timer(2.0).timeout
 	queue_free()
+
+# Play `name` if it exists and isn't already current. force=true restarts.
+func play_anim(anim_name: String, force: bool = false) -> void:
+	if _anim_player == null:
+		return
+	if not _anim_player.has_animation(anim_name):
+		return
+	if force or _anim_player.current_animation != anim_name:
+		_anim_player.play(anim_name)
+
+# Called from subclasses each physics tick after move_and_slide. Picks
+# walk/idle by velocity unless an attack/sprint anim is already playing.
+func update_locomotion_anim() -> void:
+	if _anim_player == null:
+		return
+	var cur: String = _anim_player.current_animation
+	# Don't interrupt one-shot anims (attack/death) — let them play out.
+	if cur in ["attack-melee-left", "attack-melee-right", "die"]:
+		return
+	var horiz: float = Vector2(velocity.x, velocity.z).length()
+	if horiz > 0.5:
+		play_anim("walk")
+	else:
+		play_anim("idle")
 
 func apply_gravity(delta: float) -> void:
 	if not is_on_floor():
@@ -80,3 +113,7 @@ func _swap_in_visual_model(model_path: String, scale: float = 2.0) -> void:
 	instance.name = "Mesh"
 	add_child(instance)
 	(instance as Node3D).scale = Vector3(scale, scale, scale)
+	# Cache the imported AnimationPlayer (Kenney models put it under the GLB root).
+	_anim_player = instance.get_node_or_null("AnimationPlayer")
+	if _anim_player != null:
+		_anim_player.play("idle")

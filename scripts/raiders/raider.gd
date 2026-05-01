@@ -51,9 +51,11 @@ func _physics_process(delta: float) -> void:
 	apply_gravity(delta)
 	move_and_slide()
 	_face_velocity()
+	update_locomotion_anim()
 
 func _swing() -> void:
 	_attack_timer = attack_cooldown
+	play_anim("attack-melee-right", true)
 	hitbox.monitoring = true
 	for body in hitbox.get_overlapping_bodies():
 		_on_hitbox_body_entered(body)
