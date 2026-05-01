@@ -1,0 +1,22 @@
+{
+	"name": "campaign_victory",
+	"description": "Direction A PR 8: campaign victory when day_index > campaign_target_day. Set target=2, food=100 (so workers don't desert mid-campaign), advance 96 in-game hours (4 day rollovers). On day 3 rollover (>target), Lair fires Game.end_game(true). Pass: game_over_eq victory, day_eq 5.",
+	"seed": 1818,
+	"max_duration_s": 2,
+	"champion": {
+		"max_hp": 100,
+		"damage": 14,
+		"move_speed": 5.0
+	},
+	"raiders": [],
+	"inputs": [
+		{"t": 0.1, "call": "/root/Game.set", "args": ["campaign_target_day", 2]},
+		{"t": 0.2, "call": "/root/Economy.set", "args": ["food", 100]},
+		{"t": 0.4, "call": "/root/Clock.advance_hours", "args": [96.0]}
+	],
+	"pass_criteria": {
+		"champion_alive": true,
+		"game_over_eq": "victory",
+		"day_eq": 5
+	}
+}

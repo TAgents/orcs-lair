@@ -16,6 +16,9 @@ var _t: float = 0.0
 var _ended: bool = false
 var _finish_scheduled: bool = false
 var _victory: bool = false
+# Set by Game.game_over signal — distinct from _victory which is the
+# "all_raiders_dead" path. game_over_eq criterion reads this.
+var _game_over_state: String = "none"
 var _hits_landed: int = 0
 var _hits_taken: int = 0
 var _dodges_used: int = 0
@@ -47,6 +50,9 @@ func setup(scenario_data: Dictionary, out_path: String, lair_node: Node3D) -> vo
 	Inventory.clear()
 	Clock.reset()
 	Research.reset()
+	if not Game.game_over.is_connected(_on_game_over):
+		Game.game_over.connect(_on_game_over)
+	_game_over_state = "none"
 	_setup_screenshots()
 	_trim_champions()
 	_apply_champion_overrides()
@@ -212,6 +218,9 @@ func _on_raider_damaged(_o, _amount: float) -> void:
 func _on_champion_damaged(_o, _amount: float) -> void:
 	_hits_taken += 1
 
+func _on_game_over(victory: bool) -> void:
+	_game_over_state = "victory" if victory else "defeat"
+
 func _finish(_v: bool, reason: String) -> void:
 	if _ended:
 		return
@@ -285,6 +294,11 @@ func _evaluate() -> Dictionary:
 		if got >= want:
 			ok = false
 			reasons.append("champion_z_lt want<%.2f got=%.2f" % [want, got])
+	if crit.has("game_over_eq"):
+		var want: String = String(crit["game_over_eq"])
+		if _game_over_state != want:
+			ok = false
+			reasons.append("game_over_eq want=%s got=%s" % [want, _game_over_state])
 	if crit.has("research_points_gte"):
 		var want: int = int(crit["research_points_gte"])
 		if Research.points < want:

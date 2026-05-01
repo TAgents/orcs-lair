@@ -278,7 +278,12 @@ func complete_raid_for_test() -> void:
 # either (a) don't cross day boundaries, or (b) seed Economy.food high.
 const FOOD_PER_WORKER_PER_DAY: int = 1
 
-func _on_day_changed(_new_day: int) -> void:
+func _on_day_changed(new_day: int) -> void:
+	# Campaign victory: survived past the target day.
+	if not _ended and new_day > Game.campaign_target_day:
+		_ended = true
+		Game.end_game(true)
+		return
 	var workers: Array = get_tree().get_nodes_in_group("workers")
 	var alive_workers: Array = []
 	for w in workers:

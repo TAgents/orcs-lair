@@ -135,7 +135,7 @@ func _refresh_day() -> void:
 		phase = "☀ Dusk"
 	else:
 		phase = "🌙 Night"
-	day_label.text = "Day %d   %s" % [Clock.day_index, phase]
+	day_label.text = "Day %d / %d   %s" % [Clock.day_index, Game.campaign_target_day, phase]
 
 func _on_raid_completed() -> void:
 	_raid_complete = true
