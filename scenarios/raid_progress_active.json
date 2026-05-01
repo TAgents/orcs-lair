@@ -1,0 +1,22 @@
+{
+	"name": "raid_progress_active",
+	"description": "Lair.raid_progress() reports active=true after _begin_raid. Trigger raid via M+2, assert raid_active_eq:true. Confirms the public read used by HUD's raid progress label.",
+	"seed": 5510,
+	"max_duration_s": 2,
+	"champion": {
+		"max_hp": 100,
+		"damage": 18,
+		"move_speed": 5.0
+	},
+	"raiders": [],
+	"inputs": [
+		{"t": 0.2, "press": "world_map_toggle"},
+		{"t": 0.3, "release": "world_map_toggle"},
+		{"t": 0.5, "press": "world_dest_raid"},
+		{"t": 0.6, "release": "world_dest_raid"}
+	],
+	"pass_criteria": {
+		"champion_alive": true,
+		"raid_active_eq": true
+	}
+}

@@ -283,6 +283,15 @@ func _evaluate() -> Dictionary:
 		if got >= want:
 			ok = false
 			reasons.append("champion_z_lt want<%.2f got=%.2f" % [want, got])
+	if crit.has("raid_active_eq"):
+		var want: bool = bool(crit["raid_active_eq"])
+		var got: bool = false
+		if _lair != null and _lair.has_method("raid_progress"):
+			var rp: Dictionary = _lair.raid_progress()
+			got = bool(rp.get("active", false))
+		if got != want:
+			ok = false
+			reasons.append("raid_active_eq want=%s got=%s" % [want, got])
 	if crit.has("raids_completed_eq"):
 		var want: int = int(crit["raids_completed_eq"])
 		var got: int = int(_lair.raids_completed) if _lair != null and "raids_completed" in _lair else 0

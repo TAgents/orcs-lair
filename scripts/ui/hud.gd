@@ -10,10 +10,12 @@ extends CanvasLayer
 @onready var skills_label: Label = $Root/SkillsLabel
 @onready var wave_label: Label = $Root/WaveLabel
 @onready var attr_label: Label = $Root/AttrLabel
+@onready var raid_label: Label = $Root/RaidLabel
 
 var _champion: Champion = null
 var _build_controller: BuildController = null
 var _raid_complete: bool = false
+var _lair: Node = null
 
 func _ready() -> void:
 	Game.mode_changed.connect(_on_mode_changed)
@@ -53,6 +55,21 @@ func _process(_delta: float) -> void:
 	else:
 		skills_label.visible = false
 
+	# Raid progress badge: visible while a raid is active OR pending return.
+	if _lair != null and _lair.has_method("raid_progress"):
+		var rp: Dictionary = _lair.raid_progress()
+		var active: bool = bool(rp.get("active", false)) or bool(rp.get("pending_return", false))
+		if active:
+			raid_label.visible = true
+			raid_label.text = "RAID — Chests %d/%d · Guards %d/%d" % [
+				int(rp.get("chests_looted", 0)),
+				int(rp.get("chests_total", 0)),
+				int(rp.get("guards_dead", 0)),
+				int(rp.get("guards_total", 0)),
+			]
+		else:
+			raid_label.visible = false
+
 func _format_skills(c: Champion) -> String:
 	return "%s  %s  %s  %s" % [
 		_skill_cell("J Attack", c.attack_cooldown_remaining()),
@@ -81,13 +98,13 @@ func _find_wave_director() -> void:
 	wd.wave_started.connect(_on_wave_started)
 
 func _find_lair_raid_signals() -> void:
-	var lair: Node = get_parent()
-	if lair == null:
+	_lair = get_parent()
+	if _lair == null:
 		return
-	if lair.has_signal("raid_started"):
-		lair.raid_started.connect(_on_raid_started)
-	if lair.has_signal("raid_completed"):
-		lair.raid_completed.connect(_on_raid_completed)
+	if _lair.has_signal("raid_started"):
+		_lair.raid_started.connect(_on_raid_started)
+	if _lair.has_signal("raid_completed"):
+		_lair.raid_completed.connect(_on_raid_completed)
 
 func _on_raid_started() -> void:
 	_raid_complete = false
