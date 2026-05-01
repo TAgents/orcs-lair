@@ -1,0 +1,23 @@
+{
+	"name": "world_map_screenshot",
+	"description": "Visual smoke test for the world-map view. Press M, wait for camera tween to settle, snapshot. Run interactively (no --headless).",
+	"seed": 7799,
+	"max_duration_s": 2,
+	"champion": {
+		"max_hp": 100,
+		"damage": 18,
+		"move_speed": 5.0
+	},
+	"raiders": [],
+	"inputs": [
+		{"t": 0.2, "press": "world_map_toggle"},
+		{"t": 0.3, "release": "world_map_toggle"}
+	],
+	"screenshots": [
+		{"t": 1.5, "path": "/tmp/orcs_lair_worldmap/world_map.png"}
+	],
+	"pass_criteria": {
+		"champion_alive": true,
+		"mode_eq": "WORLD_MAP"
+	}
+}

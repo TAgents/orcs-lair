@@ -1,0 +1,22 @@
+{
+	"name": "world_map_toggle",
+	"description": "Phase C-2: M toggles WORLD_MAP. Press M from LAIR → mode_eq WORLD_MAP. Press M again → mode_eq LAIR. Confirms input binding and Game.toggle_world_map state machine.",
+	"seed": 7711,
+	"max_duration_s": 2,
+	"champion": {
+		"max_hp": 100,
+		"damage": 18,
+		"move_speed": 5.0
+	},
+	"raiders": [],
+	"inputs": [
+		{"t": 0.2, "press": "world_map_toggle"},
+		{"t": 0.3, "release": "world_map_toggle"},
+		{"t": 0.5, "press": "world_map_toggle"},
+		{"t": 0.6, "release": "world_map_toggle"}
+	],
+	"pass_criteria": {
+		"champion_alive": true,
+		"mode_eq": "LAIR"
+	}
+}

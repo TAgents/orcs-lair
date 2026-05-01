@@ -8,6 +8,10 @@ extends Node3D
 
 const LAIR_CAM_POS := Vector3(0.0, 18.0, 10.0)
 const LAIR_CAM_ROT := Vector3(-1.30899, 0.0, 0.0) # deg_to_rad(-75)
+# World-map view: high overhead between lair (z≈0) and city centre (z≈80),
+# pitched ~−65° so both areas are framed.
+const WORLD_CAM_POS := Vector3(0.0, 55.0, 80.0)
+const WORLD_CAM_ROT := Vector3(-1.13446, 0.0, 0.0) # deg_to_rad(-65)
 
 var _tween: Tween = null
 var _follow_active: bool = false
@@ -23,6 +27,9 @@ func _process(_delta: float) -> void:
 func _on_mode_changed(new_mode: int) -> void:
 	if new_mode == Game.Mode.POSSESSING:
 		_follow_active = true
+	elif new_mode == Game.Mode.WORLD_MAP:
+		_follow_active = false
+		_move_camera(WORLD_CAM_POS, WORLD_CAM_ROT, false)
 	else:
 		_follow_active = false
 		_apply_lair_view(false)

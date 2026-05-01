@@ -96,8 +96,11 @@ func _refresh_mode() -> void:
 			mode_label.text = "BUILDING — B/Esc to exit"
 			build_label.visible = true
 			_refresh_build_label()
+		Game.Mode.WORLD_MAP:
+			mode_label.text = "WORLD MAP — [1] Defend Lair · [2] Raid City · M to exit"
+			build_label.visible = false
 		_:
-			mode_label.text = "LAIR — Tab NOW to possess · B to build"
+			mode_label.text = "LAIR — Tab to possess · B to build · M for world map"
 			build_label.visible = false
 
 func _on_build_type_changed(_t: int) -> void:

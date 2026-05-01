@@ -1,0 +1,23 @@
+{
+	"name": "raid_city",
+	"description": "Phase C-2: world-map → raid path. Press M to enter WORLD_MAP, then 2 to raid the city. Lair.gd._start_raid teleports the first alive Champion to (0, 0.85, 14) and switches to POSSESSING. Champion ends up just outside the lair entrance, possessed, ready to walk south.",
+	"seed": 7722,
+	"max_duration_s": 2,
+	"champion": {
+		"max_hp": 100,
+		"damage": 18,
+		"move_speed": 5.0
+	},
+	"raiders": [],
+	"inputs": [
+		{"t": 0.2, "press": "world_map_toggle"},
+		{"t": 0.3, "release": "world_map_toggle"},
+		{"t": 0.6, "press": "world_dest_raid"},
+		{"t": 0.7, "release": "world_dest_raid"}
+	],
+	"pass_criteria": {
+		"champion_alive": true,
+		"mode_eq": "POSSESSING",
+		"possessed_name_eq": "Champion"
+	}
+}
