@@ -25,7 +25,7 @@ extends Node
 # Backward-compatible: v1..v5 saves load cleanly. Missing fields default to
 # zero across the board.
 
-const SAVE_FORMAT_VERSION: int = 10
+const SAVE_FORMAT_VERSION: int = 11
 
 signal saved(path: String)
 signal loaded(path: String)
@@ -103,6 +103,7 @@ func _gather_state() -> Dictionary:
 		"time_of_day": Clock.time_of_day,
 		"research_points": Research.points,
 		"research_unlocked": Research.unlocked.duplicate(),
+		"campaign_target_day": Game.campaign_target_day,
 		"rooms": rooms,
 		"champions": champs,
 	}
@@ -123,6 +124,7 @@ func _apply_state(data: Dictionary) -> void:
 	# Research state — restore (don't re-apply branches; champion stats
 	# in this save already include the buffs).
 	Research.restore(int(data.get("research_points", 0)), data.get("research_unlocked", []))
+	Game.campaign_target_day = int(data.get("campaign_target_day", 30))
 	var lair: Node = get_tree().root.get_node_or_null("Lair")
 	if lair != null and "raids_completed" in lair:
 		lair.raids_completed = int(data.get("raids_completed", 0))

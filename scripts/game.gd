@@ -2,6 +2,11 @@ extends Node
 
 enum Mode { LAIR, POSSESSING, BUILDING, WORLD_MAP }
 
+# Direction A campaign goal: survive past day campaign_target_day. When
+# Clock.day_index exceeds this number, lair.gd fires game_over(true).
+# Adjustable per-run; defaults to 30 (Dungeon-Keeper-style "30 nights").
+var campaign_target_day: int = 30
+
 signal mode_changed(new_mode: Mode)
 signal game_over(victory: bool)
 
