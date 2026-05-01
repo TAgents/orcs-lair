@@ -1,0 +1,22 @@
+{
+	"name": "damage_number_demo",
+	"description": "Visual smoke test for floating damage numbers. AI champion vs three raiders; capture frames every 0.15s to catch both inflicted (yellow) and incoming (red) numbers.",
+	"seed": 1313,
+	"max_duration_s": 5,
+	"champion": {
+		"max_hp": 100,
+		"damage": 14,
+		"move_speed": 5.0
+	},
+	"raiders": [
+		{"position": [-2, 0, -3], "max_hp": 25, "damage": 6, "move_speed": 3.0},
+		{"position": [ 0, 0, -3], "max_hp": 25, "damage": 6, "move_speed": 3.0},
+		{"position": [ 2, 0, -3], "max_hp": 25, "damage": 6, "move_speed": 3.0}
+	],
+	"inputs": [],
+	"screenshot_every_s": 0.15,
+	"screenshot_dir": "/tmp/dmg_frames",
+	"pass_criteria": {
+		"champion_alive": true
+	}
+}
