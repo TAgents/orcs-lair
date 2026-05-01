@@ -1,0 +1,26 @@
+{
+	"name": "raid_scaling_persist",
+	"description": "Phase 5 meta-progression: raids_completed counter increments on each completed raid and persists in save format v6. Trigger raid via M+2, fire complete_raid_for_test → counter goes 0→1. Save, reset Lair.raids_completed to 0 via Lair.set, load → counter restored to 1.",
+	"seed": 6262,
+	"max_duration_s": 4,
+	"champion": {
+		"max_hp": 100,
+		"damage": 18,
+		"move_speed": 5.0
+	},
+	"raiders": [],
+	"inputs": [
+		{"t": 0.2, "press": "world_map_toggle"},
+		{"t": 0.3, "release": "world_map_toggle"},
+		{"t": 0.5, "press": "world_dest_raid"},
+		{"t": 0.6, "release": "world_dest_raid"},
+		{"t": 1.0, "call": "/root/Lair.complete_raid_for_test", "note": "raid → raids_completed becomes 1"},
+		{"t": 1.4, "call": "/root/SaveSystem.save_to", "args": ["/tmp/orcs_lair_raid_save.json"], "note": "save v6"},
+		{"t": 1.7, "call": "/root/Lair.set", "args": ["raids_completed", 0], "note": "wipe counter"},
+		{"t": 2.1, "call": "/root/SaveSystem.load_from", "args": ["/tmp/orcs_lair_raid_save.json"], "note": "load → restore"}
+	],
+	"pass_criteria": {
+		"champion_alive": true,
+		"raids_completed_eq": 1
+	}
+}

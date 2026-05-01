@@ -50,7 +50,7 @@ jobs:
         run: |
           set -e
           mkdir -p /tmp/results
-          for s in tutorial baseline overrun bot_smoketest slice_difficulty build_smoketest worker_assignment economy build_cost cycle_possession cycle_possession_release cleave_skill save_load training_bonus charge_skill roar_skill attribute_points champion_xp save_progression demolish_room demolish_refund_decay sleeping_room_regen loot_drop equipment_buff save_load_gear loot_item_drop equip_from_inventory save_load_inventory treasury_loot world_map_toggle raid_city raid_with_guards raid_complete_return; do
+          for s in tutorial baseline overrun bot_smoketest slice_difficulty build_smoketest worker_assignment economy build_cost cycle_possession cycle_possession_release cleave_skill save_load training_bonus charge_skill roar_skill attribute_points raid_scaling_persist champion_xp save_progression demolish_room demolish_refund_decay sleeping_room_regen loot_drop equipment_buff save_load_gear loot_item_drop equip_from_inventory save_load_inventory treasury_loot world_map_toggle raid_city raid_with_guards raid_complete_return; do
             echo "=== $s ==="
             ~/godot/godot --headless ++ \
               --scenario=res://scenarios/${s}.json \

@@ -4,28 +4,28 @@ extends Node
 # author by hand for tests). Persists Economy.gold, placed rooms, and
 # champion progression (level + xp + max_hp + damage).
 #
-# Format v5:
+# Format v6:
 #   {
-#     "version": 5,
+#     "version": 6,
 #     "gold": 100,
 #     "inventory": ["iron_axe", "leather_jerkin"],
+#     "raids_completed": 2,
 #     "rooms": [{"x": -4, "z": -4, "type": 0}, …],
 #     "champions": [
-#       {"name": "Champion",  "level": 3, "xp": 12, "max_hp": 140, "damage": 22,
+#       {"name": "Champion", "level": 3, "xp": 12, "max_hp": 140, "damage": 22,
 #        "gear": ["iron_axe", "warrior_charm"],
 #        "attr_points": 1, "str": 2, "vit": 0, "agi": 0}
 #     ]
 #   }
 #
-# max_hp / damage / move_speed are saved as their final aggregate values
-# (already include any STR/VIT/AGI bonuses from spent attribute points).
-# On load we set those final values directly, then restore attr_points and
-# the per-stat counters — no reapply, no double-count.
+# raids_completed is the meta-difficulty driver — each completed city raid
+# bumps it, and the next raid spawns guards with +10 hp / +1 damage per
+# completed raid. Persisting it carries that curve across runs.
 #
-# Backward-compatible: v1..v4 saves load cleanly. Missing fields default to
-# zero (no attribute spend, no inventory, no gear, etc.).
+# Backward-compatible: v1..v5 saves load cleanly. Missing fields default to
+# zero across the board.
 
-const SAVE_FORMAT_VERSION: int = 5
+const SAVE_FORMAT_VERSION: int = 6
 
 signal saved(path: String)
 signal loaded(path: String)
@@ -88,10 +88,15 @@ func _gather_state() -> Dictionary:
 				"vit": c.vit_pts,
 				"agi": c.agi_pts,
 			})
+	var lair: Node = get_tree().root.get_node_or_null("Lair")
+	var raids_completed: int = 0
+	if lair != null and "raids_completed" in lair:
+		raids_completed = int(lair.raids_completed)
 	return {
 		"version": SAVE_FORMAT_VERSION,
 		"gold": Economy.gold,
 		"inventory": Inventory.items(),
+		"raids_completed": raids_completed,
 		"rooms": rooms,
 		"champions": champs,
 	}
@@ -105,6 +110,9 @@ func _apply_state(data: Dictionary) -> void:
 	Inventory.clear()
 	for item_id in data.get("inventory", []):
 		Inventory.add(String(item_id))
+	var lair: Node = get_tree().root.get_node_or_null("Lair")
+	if lair != null and "raids_completed" in lair:
+		lair.raids_completed = int(data.get("raids_completed", 0))
 	if bc != null:
 		for r in data.get("rooms", []):
 			bc.place_at_xy(int(r["x"]), int(r["z"]), int(r["type"]), false)

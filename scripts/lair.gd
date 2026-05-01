@@ -23,6 +23,13 @@ var _raid_chests_looted: int = 0
 var _raid_guards_dead: int = 0
 var _raid_complete_pending_return: bool = false
 
+# Persistent (save format v6+). Each successful raid bumps this; subsequent
+# raids spawn guards with stats scaled by the count, raising the difficulty
+# curve over the course of a campaign.
+var raids_completed: int = 0
+const RAID_GUARD_HP_PER_RAID: float = 10.0
+const RAID_GUARD_DAMAGE_PER_RAID: float = 1.0
+
 func _ready() -> void:
 	_collect_champions()
 
@@ -153,17 +160,22 @@ func _spawn_city_guards() -> void:
 	if raiders_root == null:
 		return
 	_raid_guards_total = _CITY_GUARD_POSITIONS.size()
+	# Scale guard stats by completed-raid count. The fresh raid is N=
+	# raids_completed (not yet incremented), so wave 0 → base stats,
+	# wave 1 → +10 hp +1 dmg, wave 2 → +20 hp +2 dmg, etc.
+	var hp_bonus: float = float(raids_completed) * RAID_GUARD_HP_PER_RAID
+	var dmg_bonus: float = float(raids_completed) * RAID_GUARD_DAMAGE_PER_RAID
 	for i in _CITY_GUARD_POSITIONS.size():
 		var pos: Vector3 = _CITY_GUARD_POSITIONS[i]
 		var guard: Node = _CITY_GUARD_SCENE.instantiate()
 		guard.name = "CityGuard_%d" % i
 		raiders_root.add_child(guard)
 		guard.global_position = pos
-		(guard as Raider).max_hp = 30.0
-		(guard as Raider).hp = 30.0
-		(guard as Raider).damage = 6.0
+		(guard as Raider).max_hp = 30.0 + hp_bonus
+		(guard as Raider).hp = (guard as Raider).max_hp
+		(guard as Raider).damage = 6.0 + dmg_bonus
 		(guard as Raider).move_speed = 3.6
-		(guard as Raider).gold_drop = 8
+		(guard as Raider).gold_drop = 8 + raids_completed
 		guard.add_to_group("city_guards")
 		guard.died.connect(_on_raid_guard_died)
 
@@ -188,6 +200,7 @@ func _check_raid_complete() -> void:
 		return
 	_raid_active = false
 	_raid_complete_pending_return = true
+	raids_completed += 1
 	raid_completed.emit()
 
 # Press-M handler when raid finished: drop champion back inside the lair
