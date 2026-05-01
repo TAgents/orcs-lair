@@ -16,6 +16,7 @@
 [ext_resource type="Script" path="res://scripts/effects/village_wall_tiler.gd" id="14_village"]
 [ext_resource type="Script" path="res://scripts/effects/building_tiler.gd" id="15_buildings"]
 [ext_resource type="PackedScene" path="res://scenes/civilians/civilian.tscn" id="16_civilian"]
+[ext_resource type="PackedScene" path="res://scenes/loot/treasure_chest.tscn" id="17_chest"]
 
 [sub_resource type="ProceduralSkyMaterial" id="sky_mat"]
 sky_top_color = Color(0.12, 0.10, 0.18, 1)
@@ -470,6 +471,23 @@ material_override = SubResource("mat_rock")
 transform = Transform3D(0.95, 0, 0, 0, 0.7, 0, 0, 0, 0.95, 30, 0.35, 60)
 mesh = SubResource("mesh_rock_block")
 material_override = SubResource("mat_rock")
+
+[node name="TreasureChests" type="Node3D" parent="Outside"]
+
+[node name="ChestBuildingW" parent="Outside/TreasureChests" instance=ExtResource("17_chest")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 0, 83)
+gold_value = 40
+items = Array[String](["leather_jerkin"])
+
+[node name="ChestBuildingE" parent="Outside/TreasureChests" instance=ExtResource("17_chest")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, 83)
+gold_value = 60
+items = Array[String](["iron_axe"])
+
+[node name="ChestBuildingS" parent="Outside/TreasureChests" instance=ExtResource("17_chest")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, 95)
+gold_value = 100
+items = Array[String](["iron_plate", "warrior_charm"])
 
 [node name="Civilians" type="Node3D" parent="Outside"]
 

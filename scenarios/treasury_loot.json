@@ -1,0 +1,21 @@
+{
+	"name": "treasury_loot",
+	"description": "Phase C-1: champion enters a Treasury chest in the city → chest fires loot. Teleports the AI champion onto ChestBuildingS (gold 100, iron_plate + warrior_charm). After contact: gold = 100 (start) + 100 = 200; Inventory has both items.",
+	"seed": 6161,
+	"max_duration_s": 3,
+	"champion": {
+		"max_hp": 100,
+		"damage": 18,
+		"move_speed": 5.0
+	},
+	"raiders": [],
+	"inputs": [
+		{"t": 0.5, "call": "Champion.teleport", "args": [12, 0.85, 95.0], "note": "drop champion onto ChestBuildingS trigger"}
+	],
+	"pass_criteria": {
+		"champion_alive": true,
+		"gold_eq": 200,
+		"inventory_count_eq": 2,
+		"inventory_has": "iron_plate"
+	}
+}
