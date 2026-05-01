@@ -1,0 +1,28 @@
+{
+	"name": "screenshot_demo",
+	"description": "Demo of screenshot capture. Place rooms, equip gear, kill a weak raider, take 4 screenshots along the way. Run WITHOUT --headless so a render context exists:\n\n  /Applications/Godot.app/Contents/MacOS/Godot ++ --scenario=res://scenarios/screenshot_demo.json --output=/tmp/sd.json\n\nFrames land in /tmp/orcs_lair_frames/.",
+	"seed": 12345,
+	"max_duration_s": 10,
+	"champion": {
+		"max_hp": 100,
+		"damage": 20,
+		"move_speed": 5.0
+	},
+	"raiders": [
+		{"position": [0, 0, 8], "max_hp": 1500, "damage": 4, "move_speed": 3.0, "drop_item_id": "iron_axe"}
+	],
+	"inputs": [
+		{"t": 0.5, "call": "BuildController.place_at_xy", "args": [-5, -4, 0], "note": "Sleeping room near worker spawn"},
+		{"t": 0.7, "call": "BuildController.place_at_xy", "args": [3, -4, 1], "note": "Training room"},
+		{"t": 1.0, "call": "Champion.equip", "args": ["warrior_charm"], "note": "+3 dmg, +5 max_hp"}
+	],
+	"screenshots": [
+		{"t": 0.4, "path": "/tmp/orcs_lair_frames/01_idle.png", "note": "lair before any action"},
+		{"t": 1.5, "path": "/tmp/orcs_lair_frames/02_rooms_placed.png", "note": "two rooms placed, gear equipped"},
+		{"t": 3.5, "path": "/tmp/orcs_lair_frames/03_combat.png", "note": "champion fighting raider"},
+		{"t": 8.0, "path": "/tmp/orcs_lair_frames/04_aftermath.png", "note": "raider dead, workers settling in"}
+	],
+	"pass_criteria": {
+		"champion_alive": true
+	}
+}
