@@ -14,6 +14,7 @@ const CLASS_FOR_ROOM: Dictionary = {
 	Room.Type.TREASURY: "Banker",
 	Room.Type.MINE: "Miner",
 	Room.Type.FORGE: "Smith",
+	Room.Type.KITCHEN: "Cook",
 }
 
 signal class_earned(worker: Worker, new_class: String)
