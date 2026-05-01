@@ -1,0 +1,26 @@
+{
+	"name": "roar_skill",
+	"description": "Phase 3 4th-skill test: champion holds position, three raiders walk in spread across a wide arc. Single Roar (N) hits all three at 0.6× damage. Each raider has 14 hp; champion damage 24 → roar 14.4 vs 14 hp = 1-shot kill on every overlap. Pass = 3 raiders dead, champion alive.",
+	"seed": 4040,
+	"max_duration_s": 4,
+	"champion": {
+		"max_hp": 100,
+		"damage": 24,
+		"move_speed": 5.0
+	},
+	"raiders": [
+		{"position": [-2, 0, -3], "max_hp": 14, "damage": 6, "move_speed": 3.0},
+		{"position": [ 0, 0, -3], "max_hp": 14, "damage": 6, "move_speed": 3.0},
+		{"position": [ 2, 0, -3], "max_hp": 14, "damage": 6, "move_speed": 3.0}
+	],
+	"inputs": [
+		{"t": 0.2, "press": "possess_toggle"},
+		{"t": 0.3, "release": "possess_toggle"},
+		{"t": 1.6, "press": "skill_roar", "note": "raiders should be in front by now"},
+		{"t": 1.8, "release": "skill_roar"}
+	],
+	"pass_criteria": {
+		"champion_alive": true,
+		"raiders_killed_eq": 3
+	}
+}

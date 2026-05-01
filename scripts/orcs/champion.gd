@@ -12,6 +12,9 @@ class_name Champion
 @export var charge_speed: float = 14.0
 @export var charge_duration: float = 0.4
 @export var charge_damage_mult: float = 1.2
+@export var roar_cooldown: float = 5.0
+@export var roar_size: Vector3 = Vector3(5.0, 1.6, 5.0)
+@export var roar_damage_mult: float = 0.6
 
 @onready var hitbox: Area3D = $Hitbox
 @onready var hitbox_shape: CollisionShape3D = $Hitbox/CollisionShape3D
@@ -35,6 +38,8 @@ var _charge_remaining: float = 0.0
 var _charge_dir: Vector3 = Vector3.ZERO
 var _charge_active: bool = false
 var _charge_already_hit: Dictionary = {}
+var _roar_timer: float = 0.0
+var _roar_active: bool = false
 
 var _attack_timer: float = 0.0
 var _dodge_timer: float = 0.0
@@ -67,6 +72,7 @@ func _physics_process(delta: float) -> void:
 	_attack_timer = max(0.0, _attack_timer - delta)
 	_cleave_timer = max(0.0, _cleave_timer - delta)
 	_charge_timer = max(0.0, _charge_timer - delta)
+	_roar_timer = max(0.0, _roar_timer - delta)
 	if _charge_remaining > 0.0:
 		_charge_remaining -= delta
 		set_vulnerable(false)
@@ -138,6 +144,9 @@ func _player_input() -> void:
 	if Input.is_action_just_pressed("skill_charge") and _charge_timer <= 0.0:
 		_start_charge()
 
+	if Input.is_action_just_pressed("skill_roar") and _roar_timer <= 0.0 and _attack_timer <= 0.0:
+		_roar()
+
 func _ai_step() -> void:
 	# Simple AI: hunt nearest raider when one exists, idle otherwise.
 	if _ai_target == null or not is_instance_valid(_ai_target) or not _ai_target.is_alive():
@@ -191,6 +200,27 @@ func _cleave() -> void:
 	if box != null and _normal_hitbox_size != Vector3.ZERO:
 		box.size = _normal_hitbox_size
 
+# Roar: wider hitbox than cleave (5×5m default) but lower damage (0.6×).
+# Trades raw damage for area control. Long 5s cooldown. Same activation
+# pattern as cleave — sticky _roar_active flag routes both snap-check
+# overlaps and signal-driven entries through the multiplier.
+func _roar() -> void:
+	_attack_timer = attack_cooldown
+	_roar_timer = roar_cooldown
+	_roar_active = true
+	play_anim("emote-yes", true)
+	var box: BoxShape3D = hitbox_shape.shape as BoxShape3D
+	if box != null:
+		box.size = roar_size
+	hitbox.monitoring = true
+	for body in hitbox.get_overlapping_bodies():
+		_on_hitbox_body_entered(body)
+	await get_tree().create_timer(0.22).timeout
+	hitbox.monitoring = false
+	_roar_active = false
+	if box != null and _normal_hitbox_size != Vector3.ZERO:
+		box.size = _normal_hitbox_size
+
 func _on_hitbox_body_entered(body: Node) -> void:
 	if body == self:
 		return
@@ -203,8 +233,12 @@ func _on_hitbox_body_entered(body: Node) -> void:
 			_charge_already_hit[body] = true
 			body.take_damage(effective_damage() * charge_damage_mult, self)
 		else:
-			var dmg: float = effective_damage() * (cleave_damage_mult if _cleave_active else 1.0)
-			body.take_damage(dmg, self)
+			var mult: float = 1.0
+			if _cleave_active:
+				mult = cleave_damage_mult
+			elif _roar_active:
+				mult = roar_damage_mult
+			body.take_damage(effective_damage() * mult, self)
 		if was_alive and not body.is_alive():
 			gain_xp(int(body.max_hp))
 
@@ -362,6 +396,9 @@ func cleave_cooldown_remaining() -> float:
 
 func charge_cooldown_remaining() -> float:
 	return _charge_timer
+
+func roar_cooldown_remaining() -> float:
+	return _roar_timer
 
 func gain_xp(amount: int) -> void:
 	if amount <= 0:

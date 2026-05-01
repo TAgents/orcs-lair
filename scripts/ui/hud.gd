@@ -46,10 +46,11 @@ func _process(_delta: float) -> void:
 		skills_label.visible = false
 
 func _format_skills(c: Champion) -> String:
-	return "%s  %s  %s" % [
+	return "%s  %s  %s  %s" % [
 		_skill_cell("J Attack", c.attack_cooldown_remaining()),
 		_skill_cell("K Cleave", c.cleave_cooldown_remaining()),
 		_skill_cell("L Charge", c.charge_cooldown_remaining()),
+		_skill_cell("N Roar",   c.roar_cooldown_remaining()),
 	]
 
 func _skill_cell(label: String, cd: float) -> String:
