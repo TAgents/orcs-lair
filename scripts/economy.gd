@@ -5,8 +5,10 @@ extends Node
 # live here too.
 
 const STARTING_GOLD: int = 100
+const STARTING_ORE: int = 0
 
 signal gold_changed(new_amount: int)
+signal ore_changed(new_amount: int)
 signal spend_blocked(needed: int, have: int, reason: String)
 
 var gold: int = STARTING_GOLD:
@@ -16,9 +18,17 @@ var gold: int = STARTING_GOLD:
 		gold = value
 		gold_changed.emit(gold)
 
-# Internal accumulator so we can add fractional gold per frame and only
-# emit the changed signal when the integer value rolls over.
+var ore: int = STARTING_ORE:
+	set(value):
+		if value == ore:
+			return
+		ore = value
+		ore_changed.emit(ore)
+
+# Internal accumulators so fractional gold/ore per frame only emit the
+# changed signal when the integer value rolls over.
 var _gold_accum: float = 0.0
+var _ore_accum: float = 0.0
 
 func add_gold(amount: float) -> void:
 	if amount == 0.0:
@@ -33,9 +43,24 @@ func add_gold(amount: float) -> void:
 		_gold_accum -= float(whole)
 		gold = gold + whole
 
+func add_ore(amount: float) -> void:
+	if amount == 0.0:
+		return
+	_ore_accum += amount
+	if _ore_accum >= 1.0:
+		var whole := int(_ore_accum)
+		_ore_accum -= float(whole)
+		ore = ore + whole
+	elif _ore_accum <= -1.0:
+		var whole := int(_ore_accum)
+		_ore_accum -= float(whole)
+		ore = ore + whole
+
 func reset() -> void:
 	gold = STARTING_GOLD
 	_gold_accum = 0.0
+	ore = STARTING_ORE
+	_ore_accum = 0.0
 
 func can_afford(amount: int) -> bool:
 	return gold >= amount
