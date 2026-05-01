@@ -1,4 +1,4 @@
-[gd_scene load_steps=40 format=3]
+[gd_scene load_steps=45 format=3]
 
 [ext_resource type="Script" path="res://scripts/lair.gd" id="1_lair"]
 [ext_resource type="PackedScene" path="res://scenes/cameras/camera_rig.tscn" id="2_rig"]
@@ -14,6 +14,7 @@
 [ext_resource type="Script" path="res://scripts/effects/wall_tiler.gd" id="12_walls"]
 [ext_resource type="Script" path="res://scripts/effects/outside_floor_tiler.gd" id="13_outfloor"]
 [ext_resource type="Script" path="res://scripts/effects/village_wall_tiler.gd" id="14_village"]
+[ext_resource type="Script" path="res://scripts/effects/building_tiler.gd" id="15_buildings"]
 
 [sub_resource type="ProceduralSkyMaterial" id="sky_mat"]
 sky_top_color = Color(0.12, 0.10, 0.18, 1)
@@ -103,13 +104,13 @@ radial_segments = 12
 rings = 6
 
 [sub_resource type="BoxShape3D" id="shape_outside_ground"]
-size = Vector3(80, 1, 60)
+size = Vector3(80, 1, 100)
 
 [sub_resource type="BoxShape3D" id="shape_boundary_ns"]
 size = Vector3(80, 4, 1)
 
 [sub_resource type="BoxShape3D" id="shape_boundary_ew"]
-size = Vector3(1, 4, 60)
+size = Vector3(1, 4, 100)
 
 [sub_resource type="StandardMaterial3D" id="mat_rock"]
 albedo_color = Color(0.18, 0.17, 0.18, 1)
@@ -309,7 +310,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, 11)
 [node name="Outside" type="Node3D" parent="."]
 
 [node name="OutsideGround" type="StaticBody3D" parent="Outside"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 42)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 62)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Outside/OutsideGround"]
 shape = SubResource("shape_outside_ground")
@@ -319,26 +320,39 @@ script = ExtResource("13_outfloor")
 x_min = -40
 x_max = 40
 z_min = 12
-z_max = 72
+z_max = 112
 albedo_override = Color(0.32, 0.27, 0.22, 1)
 hole_x_min = -2
 hole_x_max = 2
 hole_z_min = 12
-hole_z_max = 42
+hole_z_max = 108
 
 [node name="StonePath" type="Node3D" parent="Outside"]
 script = ExtResource("13_outfloor")
 x_min = -2
 x_max = 2
 z_min = 12
-z_max = 42
+z_max = 108
 y_offset = 0.01
 albedo_override = Color(0.55, 0.5, 0.46, 1)
 
-[node name="VillageWalls" type="Node3D" parent="Outside"]
-script = ExtResource("14_village")
-height_layers = 2
-segments = [[Vector3(-18, 0, 64), Vector3(-8, 0, 64)], [Vector3(-8, 0, 64), Vector3(-8, 0, 70)], [Vector3(4, 0, 64), Vector3(14, 0, 64)], [Vector3(14, 0, 64), Vector3(14, 0, 70)], [Vector3(-2, 0, 67), Vector3(2, 0, 67)]]
+[node name="CityPlaza" type="Node3D" parent="Outside"]
+script = ExtResource("13_outfloor")
+x_min = -9
+x_max = 9
+z_min = 66
+z_max = 100
+y_offset = 0.01
+albedo_override = Color(0.5, 0.46, 0.42, 1)
+hole_x_min = -2
+hole_x_max = 2
+hole_z_min = 66
+hole_z_max = 100
+
+[node name="CityBuildings" type="Node3D" parent="Outside"]
+script = ExtResource("15_buildings")
+height_layers = 3
+buildings = [{"pos": Vector3(-15, 0, 68), "w": 6, "d": 6, "door": "E", "door_w": 2}, {"pos": Vector3(-15, 0, 80), "w": 6, "d": 6, "door": "E", "door_w": 2}, {"pos": Vector3(-15, 0, 92), "w": 6, "d": 6, "door": "E", "door_w": 2}, {"pos": Vector3(9, 0, 68), "w": 6, "d": 6, "door": "W", "door_w": 2}, {"pos": Vector3(9, 0, 80), "w": 6, "d": 6, "door": "W", "door_w": 2}, {"pos": Vector3(9, 0, 92), "w": 6, "d": 6, "door": "W", "door_w": 2}]
 
 [node name="OutsideTorches" type="Node3D" parent="Outside"]
 
@@ -459,19 +473,84 @@ material_override = SubResource("mat_rock")
 [node name="OutsideBoundary" type="Node3D" parent="Outside"]
 
 [node name="BoundN" type="StaticBody3D" parent="Outside/OutsideBoundary"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 72)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 112)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Outside/OutsideBoundary/BoundN"]
 shape = SubResource("shape_boundary_ns")
 
 [node name="BoundW" type="StaticBody3D" parent="Outside/OutsideBoundary"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 2, 42)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 2, 62)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Outside/OutsideBoundary/BoundW"]
 shape = SubResource("shape_boundary_ew")
 
 [node name="BoundE" type="StaticBody3D" parent="Outside/OutsideBoundary"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 2, 42)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 40, 2, 62)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Outside/OutsideBoundary/BoundE"]
 shape = SubResource("shape_boundary_ew")
+
+[node name="TorchCityNW" type="OmniLight3D" parent="Outside/OutsideTorches"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 1.6, 70)
+light_color = Color(1, 0.52, 0.18, 1)
+light_energy = 1.5
+omni_range = 6.5
+omni_attenuation = 1.4
+shadow_enabled = true
+script = ExtResource("11_torch")
+
+[node name="Flame" type="MeshInstance3D" parent="Outside/OutsideTorches/TorchCityNW"]
+mesh = SubResource("mesh_torch_flame")
+material_override = SubResource("mat_torch_flame")
+
+[node name="TorchCityNE" type="OmniLight3D" parent="Outside/OutsideTorches"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 1.6, 70)
+light_color = Color(1, 0.52, 0.18, 1)
+light_energy = 1.5
+omni_range = 6.5
+omni_attenuation = 1.4
+shadow_enabled = true
+script = ExtResource("11_torch")
+
+[node name="Flame" type="MeshInstance3D" parent="Outside/OutsideTorches/TorchCityNE"]
+mesh = SubResource("mesh_torch_flame")
+material_override = SubResource("mat_torch_flame")
+
+[node name="TorchPlaza" type="OmniLight3D" parent="Outside/OutsideTorches"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 84)
+light_color = Color(1, 0.55, 0.22, 1)
+light_energy = 2.4
+omni_range = 9.0
+omni_attenuation = 1.5
+shadow_enabled = true
+script = ExtResource("11_torch")
+
+[node name="Flame" type="MeshInstance3D" parent="Outside/OutsideTorches/TorchPlaza"]
+mesh = SubResource("mesh_torch_flame")
+material_override = SubResource("mat_torch_flame")
+
+[node name="TorchCitySW" type="OmniLight3D" parent="Outside/OutsideTorches"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 1.6, 98)
+light_color = Color(1, 0.52, 0.18, 1)
+light_energy = 1.5
+omni_range = 6.5
+omni_attenuation = 1.4
+shadow_enabled = true
+script = ExtResource("11_torch")
+
+[node name="Flame" type="MeshInstance3D" parent="Outside/OutsideTorches/TorchCitySW"]
+mesh = SubResource("mesh_torch_flame")
+material_override = SubResource("mat_torch_flame")
+
+[node name="TorchCitySE" type="OmniLight3D" parent="Outside/OutsideTorches"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 1.6, 98)
+light_color = Color(1, 0.52, 0.18, 1)
+light_energy = 1.5
+omni_range = 6.5
+omni_attenuation = 1.4
+shadow_enabled = true
+script = ExtResource("11_torch")
+
+[node name="Flame" type="MeshInstance3D" parent="Outside/OutsideTorches/TorchCitySE"]
+mesh = SubResource("mesh_torch_flame")
+material_override = SubResource("mat_torch_flame")
