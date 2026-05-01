@@ -1,0 +1,25 @@
+{
+	"name": "attribute_points",
+	"description": "Phase 4 RPG: level-up grants 1 attribute point. Spend on STR/VIT/AGI raises the matching base stat. Save/load (v5) round-trips the spent counts plus the unspent pool. Setup: gain_xp 150 → level 3 (2 level-ups), 2 unspent points. Spend 1 STR (+1 dmg), 1 VIT (+5 hp). Save → reset_progression → load. Final: damage 23, max_hp 145, level 3, 0 unspent points.",
+	"seed": 5151,
+	"max_duration_s": 3,
+	"champion": {
+		"max_hp": 100,
+		"damage": 18,
+		"move_speed": 5.0
+	},
+	"raiders": [],
+	"inputs": [
+		{"t": 0.3, "call": "/root/Lair/Champion.gain_xp", "args": [150], "note": "level 1 → 3, 2 attr_points"},
+		{"t": 0.4, "call": "/root/Lair/Champion.spend_attribute_point", "args": ["str"], "note": "+1 dmg"},
+		{"t": 0.5, "call": "/root/Lair/Champion.spend_attribute_point", "args": ["vit"], "note": "+5 max_hp"},
+		{"t": 0.7, "call": "/root/SaveSystem.save_to", "args": ["/tmp/orcs_lair_attr_save.json"], "note": "save v5"},
+		{"t": 1.0, "call": "/root/Lair/Champion.reset_progression", "note": "wipe progression"},
+		{"t": 1.4, "call": "/root/SaveSystem.load_from", "args": ["/tmp/orcs_lair_attr_save.json"], "note": "load → restore"}
+	],
+	"pass_criteria": {
+		"champion_alive": true,
+		"champion_level_eq": 3,
+		"champion_damage_eq": 23
+	}
+}
