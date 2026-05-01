@@ -45,6 +45,7 @@ func setup(scenario_data: Dictionary, out_path: String, lair_node: Node3D) -> vo
 	_apply_seed()
 	Economy.reset()
 	Inventory.clear()
+	Clock.reset()
 	_setup_screenshots()
 	_trim_champions()
 	_apply_champion_overrides()
@@ -283,6 +284,11 @@ func _evaluate() -> Dictionary:
 		if got >= want:
 			ok = false
 			reasons.append("champion_z_lt want<%.2f got=%.2f" % [want, got])
+	if crit.has("day_eq"):
+		var want: int = int(crit["day_eq"])
+		if Clock.day_index != want:
+			ok = false
+			reasons.append("day_eq want=%d got=%d" % [want, Clock.day_index])
 	if crit.has("raid_active_eq"):
 		var want: bool = bool(crit["raid_active_eq"])
 		var got: bool = false
