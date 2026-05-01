@@ -1,0 +1,18 @@
+{
+	"name": "hp_regen_ooc",
+	"description": "Out-of-combat regen: champion at hp=10, max_hp=100, no raiders. After REGEN_OOC_DELAY=3s, regen kicks in at 5/s. By t=8s the champion has had ~5s of healing → hp ≈ 35. Pass = champion_hp_gte 30.",
+	"seed": 7878,
+	"max_duration_s": 8,
+	"champion": {
+		"max_hp": 100,
+		"damage": 14,
+		"move_speed": 5.0,
+		"hp": 10
+	},
+	"raiders": [],
+	"inputs": [],
+	"pass_criteria": {
+		"champion_alive": true,
+		"champion_hp_gte": 30.0
+	}
+}
