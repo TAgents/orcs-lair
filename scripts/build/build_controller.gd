@@ -71,6 +71,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		_select_type(Room.Type.TRAINING)
 	elif event.is_action_pressed("build_select_3"):
 		_select_type(Room.Type.TREASURY)
+	elif event.is_action_pressed("build_select_4"):
+		_select_type(Room.Type.MINE)
 	elif event.is_action_pressed("build_confirm"):
 		_try_place()
 	elif event.is_action_pressed("build_demolish"):

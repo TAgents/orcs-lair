@@ -1,0 +1,21 @@
+{
+	"name": "mine_ore",
+	"description": "Direction A PR 2: Mine room produces ore. Place a Mine room (type 3) at (-5, -4) — same spot as sleeping_room_regen so Worker1 walks over and works it. After ~5s of WORKING (0.5 ore/sec), ore reaches at least 2.",
+	"seed": 1212,
+	"max_duration_s": 8,
+	"champion": {
+		"max_hp": 100,
+		"damage": 14,
+		"move_speed": 5.0
+	},
+	"raiders": [],
+	"inputs": [
+		{"t": 0.3, "call": "BuildController.place_at_xy", "args": [-5, -4, 3], "note": "Mine (30g, 70 left) at Worker1's spawn"}
+	],
+	"pass_criteria": {
+		"champion_alive": true,
+		"rooms_placed_eq": 1,
+		"workers_at_rooms_eq": 1,
+		"ore_gte": 2
+	}
+}

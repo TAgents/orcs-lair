@@ -25,7 +25,7 @@ extends Node
 # Backward-compatible: v1..v5 saves load cleanly. Missing fields default to
 # zero across the board.
 
-const SAVE_FORMAT_VERSION: int = 7
+const SAVE_FORMAT_VERSION: int = 8
 
 signal saved(path: String)
 signal loaded(path: String)
@@ -95,6 +95,7 @@ func _gather_state() -> Dictionary:
 	return {
 		"version": SAVE_FORMAT_VERSION,
 		"gold": Economy.gold,
+		"ore": Economy.ore,
 		"inventory": Inventory.items(),
 		"raids_completed": raids_completed,
 		"day_index": Clock.day_index,
@@ -109,6 +110,7 @@ func _apply_state(data: Dictionary) -> void:
 		bc.clear_all()
 	Economy.reset()
 	Economy.gold = int(data.get("gold", Economy.STARTING_GOLD))
+	Economy.ore = int(data.get("ore", Economy.STARTING_ORE))
 	Inventory.clear()
 	for item_id in data.get("inventory", []):
 		Inventory.add(String(item_id))

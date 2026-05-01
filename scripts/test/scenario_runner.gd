@@ -284,6 +284,16 @@ func _evaluate() -> Dictionary:
 		if got >= want:
 			ok = false
 			reasons.append("champion_z_lt want<%.2f got=%.2f" % [want, got])
+	if crit.has("ore_eq"):
+		var want: int = int(crit["ore_eq"])
+		if Economy.ore != want:
+			ok = false
+			reasons.append("ore_eq want=%d got=%d" % [want, Economy.ore])
+	if crit.has("ore_gte"):
+		var want: int = int(crit["ore_gte"])
+		if Economy.ore < want:
+			ok = false
+			reasons.append("ore_gte want>=%d got=%d" % [want, Economy.ore])
 	if crit.has("day_eq"):
 		var want: int = int(crit["day_eq"])
 		if Clock.day_index != want:

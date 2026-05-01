@@ -15,6 +15,7 @@ const TREASURY_GOLD_PER_SEC: float = 1.0
 const TRAINING_DAMAGE_BONUS: float = 10.0
 const SLEEPING_HP_PER_SEC: float = 4.0
 const SLEEPING_HEAL_RADIUS: float = 4.5
+const MINE_ORE_PER_SEC: float = 0.5
 
 @export var room_type: int = 0
 @export var footprint: Vector2i = Vector2i(2, 2)
@@ -66,6 +67,8 @@ func _process(delta: float) -> void:
 		Economy.add_gold(TREASURY_GOLD_PER_SEC * delta)
 	elif room_type == Room.Type.SLEEPING:
 		_regen_nearby(delta)
+	elif room_type == Room.Type.MINE:
+		Economy.add_ore(MINE_ORE_PER_SEC * delta)
 
 func _regen_nearby(delta: float) -> void:
 	var amount: float = SLEEPING_HP_PER_SEC * delta
