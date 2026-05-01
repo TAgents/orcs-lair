@@ -24,6 +24,7 @@ func take_damage(amount: float, _source: Node = null) -> void:
 		return
 	hp = max(0.0, hp - amount)
 	damaged.emit(self, amount)
+	HitSparks.spawn_at(global_position + Vector3(0.0, 1.0, 0.0), self)
 	if hp <= 0.0:
 		_die()
 

@@ -1,0 +1,21 @@
+{
+	"name": "sparks_demo",
+	"description": "Captures hit sparks. AI champion attacks a high-HP punching-bag raider; frames every 0.1s catch the spark bursts on impact. Run interactively (no --headless).",
+	"seed": 909,
+	"max_duration_s": 3,
+	"champion": {
+		"max_hp": 100,
+		"damage": 18,
+		"move_speed": 5.0,
+		"position": [0, 0.85, 0]
+	},
+	"raiders": [
+		{"position": [0, 0, 3], "max_hp": 9999, "damage": 4, "move_speed": 3.0}
+	],
+	"inputs": [],
+	"screenshot_every_s": 0.1,
+	"screenshot_dir": "/tmp/sparks_frames",
+	"pass_criteria": {
+		"champion_alive": true
+	}
+}
