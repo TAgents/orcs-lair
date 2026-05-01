@@ -23,6 +23,7 @@ func _ready() -> void:
 	Game.game_over.connect(_on_game_over)
 	Economy.gold_changed.connect(_on_gold_changed)
 	Economy.ore_changed.connect(_on_ore_changed)
+	Economy.food_changed.connect(_on_food_changed)
 	banner.visible = false
 	build_label.visible = false
 	_refresh_mode()
@@ -205,5 +206,8 @@ func _on_gold_changed(_amount: int) -> void:
 func _on_ore_changed(_amount: int) -> void:
 	_refresh_gold()
 
+func _on_food_changed(_amount: int) -> void:
+	_refresh_gold()
+
 func _refresh_gold() -> void:
-	gold_label.text = "Gold: %d   Ore: %d" % [Economy.gold, Economy.ore]
+	gold_label.text = "Gold: %d   Ore: %d   Food: %d" % [Economy.gold, Economy.ore, Economy.food]

@@ -6,9 +6,11 @@ extends Node
 
 const STARTING_GOLD: int = 100
 const STARTING_ORE: int = 0
+const STARTING_FOOD: int = 50
 
 signal gold_changed(new_amount: int)
 signal ore_changed(new_amount: int)
+signal food_changed(new_amount: int)
 signal spend_blocked(needed: int, have: int, reason: String)
 
 var gold: int = STARTING_GOLD:
@@ -25,10 +27,18 @@ var ore: int = STARTING_ORE:
 		ore = value
 		ore_changed.emit(ore)
 
-# Internal accumulators so fractional gold/ore per frame only emit the
+var food: int = STARTING_FOOD:
+	set(value):
+		if value == food:
+			return
+		food = value
+		food_changed.emit(food)
+
+# Internal accumulators so fractional resources per frame only emit the
 # changed signal when the integer value rolls over.
 var _gold_accum: float = 0.0
 var _ore_accum: float = 0.0
+var _food_accum: float = 0.0
 
 func add_gold(amount: float) -> void:
 	if amount == 0.0:
@@ -56,11 +66,26 @@ func add_ore(amount: float) -> void:
 		_ore_accum -= float(whole)
 		ore = ore + whole
 
+func add_food(amount: float) -> void:
+	if amount == 0.0:
+		return
+	_food_accum += amount
+	if _food_accum >= 1.0:
+		var whole := int(_food_accum)
+		_food_accum -= float(whole)
+		food = food + whole
+	elif _food_accum <= -1.0:
+		var whole := int(_food_accum)
+		_food_accum -= float(whole)
+		food = food + whole
+
 func reset() -> void:
 	gold = STARTING_GOLD
 	_gold_accum = 0.0
 	ore = STARTING_ORE
 	_ore_accum = 0.0
+	food = STARTING_FOOD
+	_food_accum = 0.0
 
 func can_afford(amount: int) -> bool:
 	return gold >= amount

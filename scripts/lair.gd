@@ -34,6 +34,7 @@ const RAID_GUARD_DAMAGE_PER_RAID: float = 1.0
 func _ready() -> void:
 	_collect_champions()
 	Clock.time_changed.connect(_on_time_changed)
+	Clock.day_changed.connect(_on_day_changed)
 	_on_time_changed(Clock.time_of_day)
 
 	if _maybe_run_scenario():
@@ -269,6 +270,33 @@ func complete_raid_for_test() -> void:
 	_raid_chests_looted = _raid_chests_total
 	_raid_guards_dead = _raid_guards_total
 	_check_raid_complete()
+
+# Daily food rollover: each living worker consumes 1 food at the day
+# boundary. If food can't cover everyone, the deficit is the number of
+# workers who desert (queue_free starting from oldest). Workers in
+# scenario mode aren't immune — scenarios that don't want desertion
+# either (a) don't cross day boundaries, or (b) seed Economy.food high.
+const FOOD_PER_WORKER_PER_DAY: int = 1
+
+func _on_day_changed(_new_day: int) -> void:
+	var workers: Array = get_tree().get_nodes_in_group("workers")
+	var alive_workers: Array = []
+	for w in workers:
+		if w is Worker and w.is_alive():
+			alive_workers.append(w)
+	var need: int = alive_workers.size() * FOOD_PER_WORKER_PER_DAY
+	if Economy.food >= need:
+		Economy.food = Economy.food - need
+		return
+	Economy.food = 0
+	var deficit: int = need - Economy.food
+	# Desert (free) deficit-many workers, oldest first (back of array
+	# in tree order). Cap at alive_workers.size() so we don't underflow.
+	var to_free: int = min(deficit, alive_workers.size())
+	for i in to_free:
+		var w: Node = alive_workers[i]
+		if is_instance_valid(w):
+			w.queue_free()
 
 # Day/night cycle: rotates the lair's DirectionalLight3D around the world X
 # axis so the sun's apparent altitude tracks Clock.time_of_day. Day-zero
