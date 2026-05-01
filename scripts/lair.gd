@@ -8,6 +8,21 @@ var _champions: Array[Champion] = []
 var _ended: bool = false
 var _scenario_mode: bool = false
 
+# Raid state. Tracked between _start_raid() and the subsequent return.
+# When _raid_chests_looted == _raid_chests_total AND _raid_guards_dead ==
+# _raid_guards_total, _raid_complete_pending_return flips true and the HUD
+# prompts the player to press M. M then teleports the champion back to the
+# lair interior and switches to LAIR mode.
+signal raid_started
+signal raid_completed
+
+var _raid_active: bool = false
+var _raid_chests_total: int = 0
+var _raid_guards_total: int = 0
+var _raid_chests_looted: int = 0
+var _raid_guards_dead: int = 0
+var _raid_complete_pending_return: bool = false
+
 func _ready() -> void:
 	_collect_champions()
 
@@ -67,8 +82,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		Game.toggle_build()
 	elif event.is_action_pressed("build_cancel") and Game.mode == Game.Mode.BUILDING:
 		Game.set_mode(Game.Mode.LAIR, null)
-	elif event.is_action_pressed("world_map_toggle") and Game.mode != Game.Mode.POSSESSING and Game.mode != Game.Mode.BUILDING:
-		Game.toggle_world_map()
+	elif event.is_action_pressed("world_map_toggle"):
+		# When a raid finishes, M pulls the champion back to the lair instead
+		# of toggling the world map. Otherwise standard toggle (gated as before).
+		if _raid_complete_pending_return:
+			_return_from_raid()
+		elif Game.mode != Game.Mode.POSSESSING and Game.mode != Game.Mode.BUILDING:
+			Game.toggle_world_map()
 	elif event.is_action_pressed("world_dest_lair") and Game.mode == Game.Mode.WORLD_MAP:
 		Game.set_mode(Game.Mode.LAIR, null)
 	elif event.is_action_pressed("world_dest_raid") and Game.mode == Game.Mode.WORLD_MAP:
@@ -106,7 +126,23 @@ func _start_raid() -> void:
 	# Face the city (camera will end up north of champion looking south).
 	champion.rotation.y = PI
 	Game.set_mode(Game.Mode.POSSESSING, champion)
+	_begin_raid()
+
+# Per-raid bookkeeping. Wires chest loot signals + spawns guards, then
+# emits raid_started so HUD/etc. can react.
+func _begin_raid() -> void:
+	_raid_active = true
+	_raid_complete_pending_return = false
+	_raid_chests_looted = 0
+	_raid_guards_dead = 0
+	var chests: Array = get_tree().get_nodes_in_group("treasure_chests")
+	_raid_chests_total = chests.size()
+	for c in chests:
+		# Skip already-looted chests from a prior raid; only count fresh ones.
+		if c.has_signal("looted") and not c.looted.is_connected(_on_raid_chest_looted):
+			c.looted.connect(_on_raid_chest_looted)
 	_spawn_city_guards()
+	raid_started.emit()
 
 # Spawns 3 raiders inside the city as defenders. They reuse Raider's AI —
 # pick nearest non-raider orc and chase — so the possessed champion gets
@@ -116,6 +152,7 @@ func _spawn_city_guards() -> void:
 	var raiders_root: Node3D = get_node_or_null("Raiders")
 	if raiders_root == null:
 		return
+	_raid_guards_total = _CITY_GUARD_POSITIONS.size()
 	for i in _CITY_GUARD_POSITIONS.size():
 		var pos: Vector3 = _CITY_GUARD_POSITIONS[i]
 		var guard: Node = _CITY_GUARD_SCENE.instantiate()
@@ -128,6 +165,58 @@ func _spawn_city_guards() -> void:
 		(guard as Raider).move_speed = 3.6
 		(guard as Raider).gold_drop = 8
 		guard.add_to_group("city_guards")
+		guard.died.connect(_on_raid_guard_died)
+
+func _on_raid_chest_looted(_chest: Node, _gold: int, _items: Array) -> void:
+	if not _raid_active:
+		return
+	_raid_chests_looted += 1
+	_check_raid_complete()
+
+func _on_raid_guard_died(_orc: Node) -> void:
+	if not _raid_active:
+		return
+	_raid_guards_dead += 1
+	_check_raid_complete()
+
+func _check_raid_complete() -> void:
+	if not _raid_active:
+		return
+	if _raid_chests_looted < _raid_chests_total:
+		return
+	if _raid_guards_dead < _raid_guards_total:
+		return
+	_raid_active = false
+	_raid_complete_pending_return = true
+	raid_completed.emit()
+
+# Press-M handler when raid finished: drop champion back inside the lair
+# at the firepit and switch to LAIR mode (auto-unpossesses).
+func _return_from_raid() -> void:
+	_raid_complete_pending_return = false
+	var champion: Champion = null
+	for c in _champions:
+		if is_instance_valid(c) and c.is_alive():
+			champion = c
+			break
+	if champion != null:
+		champion.teleport(0.0, 0.85, 0.0)
+		champion.rotation.y = 0.0
+	Game.set_mode(Game.Mode.LAIR, null)
+
+# Test-only hatch: instantly satisfy the raid-complete conditions and
+# free any living city guards so the AI champion has no targets to chase
+# post-return. Scenarios use this to verify the post-completion state
+# without scripting full combat. Called via /root/Lair.complete_raid_for_test.
+func complete_raid_for_test() -> void:
+	if not _raid_active:
+		return
+	for g in get_tree().get_nodes_in_group("city_guards"):
+		if is_instance_valid(g):
+			g.queue_free()
+	_raid_chests_looted = _raid_chests_total
+	_raid_guards_dead = _raid_guards_total
+	_check_raid_complete()
 
 # Tab cycles: NONE → champion[0] → champion[1] → … → champion[N-1] → NONE → ...
 # Skips dead/freed champions automatically.

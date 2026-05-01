@@ -12,6 +12,7 @@ extends CanvasLayer
 
 var _champion: Champion = null
 var _build_controller: BuildController = null
+var _raid_complete: bool = false
 
 func _ready() -> void:
 	Game.mode_changed.connect(_on_mode_changed)
@@ -24,6 +25,7 @@ func _ready() -> void:
 	_find_champion()
 	_find_build_controller()
 	_find_wave_director()
+	_find_lair_raid_signals()
 
 func _process(_delta: float) -> void:
 	# HP / level / XP always reflect the *named* champion (first one — Champion2
@@ -69,6 +71,23 @@ func _find_wave_director() -> void:
 		return
 	wd.wave_started.connect(_on_wave_started)
 
+func _find_lair_raid_signals() -> void:
+	var lair: Node = get_parent()
+	if lair == null:
+		return
+	if lair.has_signal("raid_started"):
+		lair.raid_started.connect(_on_raid_started)
+	if lair.has_signal("raid_completed"):
+		lair.raid_completed.connect(_on_raid_completed)
+
+func _on_raid_started() -> void:
+	_raid_complete = false
+	_refresh_mode()
+
+func _on_raid_completed() -> void:
+	_raid_complete = true
+	_refresh_mode()
+
 func _on_wave_started(wave_idx: int, total: int) -> void:
 	wave_label.visible = true
 	wave_label.text = "Wave %d/%d" % [wave_idx + 1, total]
@@ -85,12 +104,18 @@ func _find_build_controller() -> void:
 		_build_controller.type_changed.connect(_on_build_type_changed)
 
 func _on_mode_changed(_m: int) -> void:
+	# Returning to LAIR after a completed raid clears the prompt.
+	if Game.mode == Game.Mode.LAIR:
+		_raid_complete = false
 	_refresh_mode()
 
 func _refresh_mode() -> void:
 	match Game.mode:
 		Game.Mode.POSSESSING:
-			mode_label.text = "POSSESSING — Tab to release"
+			if _raid_complete:
+				mode_label.text = "RAID COMPLETE — M to return"
+			else:
+				mode_label.text = "POSSESSING — Tab to release"
 			build_label.visible = false
 		Game.Mode.BUILDING:
 			mode_label.text = "BUILDING — B/Esc to exit"

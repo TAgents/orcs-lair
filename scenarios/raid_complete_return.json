@@ -1,0 +1,26 @@
+{
+	"name": "raid_complete_return",
+	"description": "Phase C-4: raid completion + return loop. Trigger raid via M+2, instantly satisfy completion via Lair.complete_raid_for_test, then press M to return. Champion should teleport back inside the lair (z<5) and mode should be LAIR.",
+	"seed": 9933,
+	"max_duration_s": 3,
+	"champion": {
+		"max_hp": 100,
+		"damage": 18,
+		"move_speed": 5.0
+	},
+	"raiders": [],
+	"inputs": [
+		{"t": 0.2, "press": "world_map_toggle"},
+		{"t": 0.3, "release": "world_map_toggle"},
+		{"t": 0.5, "press": "world_dest_raid"},
+		{"t": 0.6, "release": "world_dest_raid"},
+		{"t": 1.0, "call": "/root/Lair.complete_raid_for_test", "note": "satisfy raid-complete conditions"},
+		{"t": 1.5, "press": "world_map_toggle", "note": "M while pending → return"},
+		{"t": 1.6, "release": "world_map_toggle"}
+	],
+	"pass_criteria": {
+		"champion_alive": true,
+		"mode_eq": "LAIR",
+		"champion_z_lt": 5.0
+	}
+}

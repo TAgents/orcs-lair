@@ -277,6 +277,12 @@ func _evaluate() -> Dictionary:
 		if Economy.gold != want:
 			ok = false
 			reasons.append("gold_eq want=%d got=%d" % [want, Economy.gold])
+	if crit.has("champion_z_lt"):
+		var want: float = float(crit["champion_z_lt"])
+		var got: float = _champion.global_position.z if _champion != null and is_instance_valid(_champion) else INF
+		if got >= want:
+			ok = false
+			reasons.append("champion_z_lt want<%.2f got=%.2f" % [want, got])
 	if crit.has("raiders_alive_gte"):
 		var want: int = int(crit["raiders_alive_gte"])
 		var got: int = _query_raiders_alive()
