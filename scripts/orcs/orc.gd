@@ -33,6 +33,12 @@ func heal(amount: float) -> void:
 		return
 	hp = min(max_hp, hp + amount)
 
+# Test/scenario helper: jump to a world position. Three floats so it can be
+# called from probe_bot via JSON-encoded args (no Vector3 in JSON).
+func teleport(x: float, y: float, z: float) -> void:
+	global_position = Vector3(x, y, z)
+	velocity = Vector3.ZERO
+
 func _die() -> void:
 	died.emit(self)
 	set_physics_process(false)
