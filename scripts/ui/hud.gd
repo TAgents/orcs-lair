@@ -170,7 +170,8 @@ func _refresh_build_label() -> void:
 
 func _on_game_over(victory: bool) -> void:
 	banner.visible = true
-	banner.text = "LAIR DEFENDED" if victory else "LAIR FALLEN"
+	var head: String = "LAIR DEFENDED" if victory else "LAIR FALLEN"
+	banner.text = "%s\nR to restart" % head
 
 func _on_gold_changed(_amount: int) -> void:
 	_refresh_gold()
