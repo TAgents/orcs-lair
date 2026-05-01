@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=3]
+[gd_scene load_steps=26 format=3]
 
 [ext_resource type="Script" path="res://scripts/lair.gd" id="1_lair"]
 [ext_resource type="PackedScene" path="res://scenes/cameras/camera_rig.tscn" id="2_rig"]
@@ -9,6 +9,8 @@
 [ext_resource type="PackedScene" path="res://scenes/build/build_controller.tscn" id="7_build"]
 [ext_resource type="PackedScene" path="res://scenes/wave_director.tscn" id="8_waves"]
 [ext_resource type="Script" path="res://scripts/effects/firepit.gd" id="9_firepit"]
+[ext_resource type="Script" path="res://scripts/effects/floor_tiler.gd" id="10_tiler"]
+[ext_resource type="Script" path="res://scripts/effects/torch.gd" id="11_torch"]
 
 [sub_resource type="ProceduralSkyMaterial" id="sky_mat"]
 sky_top_color = Color(0.12, 0.10, 0.18, 1)
@@ -84,6 +86,19 @@ emission_energy_multiplier = 4.0
 [sub_resource type="BoxMesh" id="mesh_fire_base"]
 size = Vector3(0.7, 0.25, 0.7)
 
+[sub_resource type="StandardMaterial3D" id="mat_torch_flame"]
+albedo_color = Color(0.25, 0.1, 0.04, 1)
+roughness = 0.95
+emission_enabled = true
+emission = Color(1, 0.5, 0.15, 1)
+emission_energy_multiplier = 5.0
+
+[sub_resource type="SphereMesh" id="mesh_torch_flame"]
+radius = 0.18
+height = 0.36
+radial_segments = 12
+rings = 6
+
 [node name="Lair" type="Node3D"]
 script = ExtResource("1_lair")
 
@@ -109,6 +124,61 @@ script = ExtResource("9_firepit")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.45, 0)
 mesh = SubResource("mesh_fire_base")
 material_override = SubResource("mat_fire")
+
+[node name="FloorTiles" type="Node3D" parent="."]
+script = ExtResource("10_tiler")
+
+[node name="TorchNW" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.5, 2.2, -10.5)
+light_color = Color(1, 0.52, 0.18, 1)
+light_energy = 1.8
+omni_range = 7.0
+omni_attenuation = 1.4
+shadow_enabled = true
+script = ExtResource("11_torch")
+
+[node name="Flame" type="MeshInstance3D" parent="TorchNW"]
+mesh = SubResource("mesh_torch_flame")
+material_override = SubResource("mat_torch_flame")
+
+[node name="TorchNE" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.5, 2.2, -10.5)
+light_color = Color(1, 0.52, 0.18, 1)
+light_energy = 1.8
+omni_range = 7.0
+omni_attenuation = 1.4
+shadow_enabled = true
+script = ExtResource("11_torch")
+
+[node name="Flame" type="MeshInstance3D" parent="TorchNE"]
+mesh = SubResource("mesh_torch_flame")
+material_override = SubResource("mat_torch_flame")
+
+[node name="TorchSW" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.5, 2.2, 10.5)
+light_color = Color(1, 0.52, 0.18, 1)
+light_energy = 1.8
+omni_range = 7.0
+omni_attenuation = 1.4
+shadow_enabled = true
+script = ExtResource("11_torch")
+
+[node name="Flame" type="MeshInstance3D" parent="TorchSW"]
+mesh = SubResource("mesh_torch_flame")
+material_override = SubResource("mat_torch_flame")
+
+[node name="TorchSE" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.5, 2.2, 10.5)
+light_color = Color(1, 0.52, 0.18, 1)
+light_energy = 1.8
+omni_range = 7.0
+omni_attenuation = 1.4
+shadow_enabled = true
+script = ExtResource("11_torch")
+
+[node name="Flame" type="MeshInstance3D" parent="TorchSE"]
+mesh = SubResource("mesh_torch_flame")
+material_override = SubResource("mat_torch_flame")
 
 [node name="Floor" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
