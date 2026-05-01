@@ -1,0 +1,20 @@
+{
+	"name": "anim_sequence",
+	"description": "Captures one frame every 0.25s for 6 seconds → 24 frames in /tmp/anim_frames/. Useful for eyeballing whether walk/attack/die animations actually animate. Run interactively (no --headless). Workers wander, AI champion attacks the dummy raider, raider dies and plays die animation.",
+	"seed": 333,
+	"max_duration_s": 6,
+	"champion": {
+		"max_hp": 100,
+		"damage": 14,
+		"move_speed": 5.0
+	},
+	"raiders": [
+		{"position": [0, 0, 8], "max_hp": 30, "damage": 4, "move_speed": 3.0}
+	],
+	"inputs": [],
+	"screenshot_every_s": 0.25,
+	"screenshot_dir": "/tmp/anim_frames",
+	"pass_criteria": {
+		"champion_alive": true
+	}
+}

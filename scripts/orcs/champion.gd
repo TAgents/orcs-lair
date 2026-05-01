@@ -96,6 +96,7 @@ func _physics_process(delta: float) -> void:
 	apply_gravity(delta)
 	move_and_slide()
 	_face_velocity()
+	update_locomotion_anim()
 
 func _player_input() -> void:
 	var raw := Vector2(
@@ -159,6 +160,7 @@ func _ai_step() -> void:
 
 func _swing() -> void:
 	_attack_timer = attack_cooldown
+	play_anim("attack-melee-right", true)
 	hitbox.monitoring = true
 	# Snap-check anything already overlapping at swing start.
 	for body in hitbox.get_overlapping_bodies():
@@ -173,6 +175,7 @@ func _cleave() -> void:
 	_attack_timer = attack_cooldown
 	_cleave_timer = cleave_cooldown
 	_cleave_active = true
+	play_anim("attack-melee-left", true)
 	var box: BoxShape3D = hitbox_shape.shape as BoxShape3D
 	if box != null:
 		box.size = cleave_size
@@ -215,6 +218,7 @@ func _start_charge() -> void:
 	_charge_already_hit.clear()
 	_charge_dir = _current_facing_or_input()
 	hitbox.monitoring = true
+	play_anim("sprint", true)
 
 func _current_facing_or_input() -> Vector3:
 	# Prefer the player's current move-input vector; fall back to body facing.

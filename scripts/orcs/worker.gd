@@ -62,6 +62,12 @@ func _physics_process(delta: float) -> void:
 			velocity.z = 0.0
 	apply_gravity(delta)
 	move_and_slide()
+	# In WORKING state, loop the interact animation; otherwise let the base
+	# pick walk/idle from velocity.
+	if _state == State.WORKING:
+		play_anim("interact-right")
+	else:
+		update_locomotion_anim()
 
 func _step_wander(_delta: float) -> void:
 	if _wait > 0.0:
