@@ -3,6 +3,24 @@ class_name Worker
 
 enum State { WANDER, GOING_TO_ROOM, WORKING }
 
+# Worker class system. A worker who spends WORKER_CLASS_THRESHOLD seconds
+# WORKING in a class-bearing room earns the matching class. The class
+# stays attached to the worker forever (per session — save persistence is
+# a future PR) and acts as a 1.5× multiplier when assigned to a room of
+# that class. Sleeping rooms confer no class (rest is universal).
+const WORKER_CLASS_THRESHOLD: float = 8.0
+const CLASS_FOR_ROOM: Dictionary = {
+	Room.Type.TRAINING: "Trainer",
+	Room.Type.TREASURY: "Banker",
+	Room.Type.MINE: "Miner",
+	Room.Type.FORGE: "Smith",
+}
+
+signal class_earned(worker: Worker, new_class: String)
+
+@export var worker_class: String = ""
+var _class_progress: float = 0.0
+
 @export var wander_radius: float = 4.0
 @export var wander_pause_min: float = 1.5
 @export var wander_pause_max: float = 4.0
@@ -60,6 +78,7 @@ func _physics_process(delta: float) -> void:
 		State.WORKING:
 			velocity.x = 0.0
 			velocity.z = 0.0
+			_advance_class_progress(delta)
 	apply_gravity(delta)
 	move_and_slide()
 	# In WORKING state, loop the interact animation; otherwise let the base
@@ -108,6 +127,25 @@ func _step_going_to_room() -> void:
 func _pick_new_wander_target() -> void:
 	var offset := Vector3(randf_range(-wander_radius, wander_radius), 0.0, randf_range(-wander_radius, wander_radius))
 	_wander_target = _home + offset
+
+# Accumulate class progress while WORKING in a class-bearing room. Once a
+# worker has earned a class they keep it for life — even if reassigned to
+# a different room type, the class buff applies whenever they're back in
+# the matching room.
+func _advance_class_progress(delta: float) -> void:
+	if worker_class != "":
+		return
+	if not is_assigned():
+		return
+	var rt: int = assigned_room.room_type if "room_type" in assigned_room else -1
+	if not CLASS_FOR_ROOM.has(rt):
+		return
+	_class_progress += delta
+	if _class_progress < WORKER_CLASS_THRESHOLD:
+		return
+	worker_class = String(CLASS_FOR_ROOM[rt])
+	_class_progress = 0.0
+	class_earned.emit(self, worker_class)
 
 # --- Auto-assignment from BuildController.room_placed ----------------------
 

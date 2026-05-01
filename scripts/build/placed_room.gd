@@ -16,6 +16,16 @@ const TRAINING_DAMAGE_BONUS: float = 10.0
 const SLEEPING_HP_PER_SEC: float = 4.0
 const SLEEPING_HEAL_RADIUS: float = 4.5
 const MINE_ORE_PER_SEC: float = 0.5
+# Per-room class match: when the assigned worker has the matching class,
+# room output / craft speed is multiplied by this. Trainer/Banker/Miner/
+# Smith are awarded by Worker._advance_class_progress.
+const CLASS_BONUS_MULT: float = 1.5
+const CLASS_FOR_ROOM_TYPE: Dictionary = {
+	Room.Type.TRAINING: "Trainer",
+	Room.Type.TREASURY: "Banker",
+	Room.Type.MINE: "Miner",
+	Room.Type.FORGE: "Smith",
+}
 const FORGE_CRAFT_TIME: float = 6.0
 const FORGE_ORE_COST: int = 1
 # Round-robin output. Forge alternates rusty_axe / leather_jerkin so a
@@ -71,14 +81,29 @@ func has_assigned_worker() -> bool:
 func _process(delta: float) -> void:
 	if not is_active():
 		return
+	var mult: float = _class_multiplier()
 	if room_type == Room.Type.TREASURY:
-		Economy.add_gold(TREASURY_GOLD_PER_SEC * delta)
+		Economy.add_gold(TREASURY_GOLD_PER_SEC * delta * mult)
 	elif room_type == Room.Type.SLEEPING:
 		_regen_nearby(delta)
 	elif room_type == Room.Type.MINE:
-		Economy.add_ore(MINE_ORE_PER_SEC * delta)
+		Economy.add_ore(MINE_ORE_PER_SEC * delta * mult)
 	elif room_type == Room.Type.FORGE:
-		_step_forge(delta)
+		_step_forge(delta * mult)
+
+# 1.5× when the assigned worker's class matches this room's type, 1.0
+# otherwise. Sleeping rooms have no class bonus (no class is awarded for
+# resting), so they always return 1.0. Training's bonus applies via
+# Champion.effective_damage as a flat add — that path is unaffected.
+func _class_multiplier() -> float:
+	if not CLASS_FOR_ROOM_TYPE.has(room_type):
+		return 1.0
+	var w: Node = get_assigned_worker()
+	if w == null or not "worker_class" in w:
+		return 1.0
+	if w.worker_class != CLASS_FOR_ROOM_TYPE[room_type]:
+		return 1.0
+	return CLASS_BONUS_MULT
 
 func _step_forge(delta: float) -> void:
 	# Smith only progresses when the lair has ore to feed in. When progress
