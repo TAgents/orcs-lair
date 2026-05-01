@@ -22,9 +22,14 @@ var _anim_player: AnimationPlayer = null
 func take_damage(amount: float, _source: Node = null) -> void:
 	if not _vulnerable or hp <= 0.0:
 		return
+	var actual: float = min(amount, hp)
 	hp = max(0.0, hp - amount)
 	damaged.emit(self, amount)
 	HitSparks.spawn_at(global_position + Vector3(0.0, 1.0, 0.0), self)
+	# Yellow when a raider takes damage (player success), red when a
+	# friendly orc/civilian/champion gets hit (player threat).
+	var dmg_color: Color = Color(1, 0.9, 0.4) if faction == "raider" else Color(1, 0.4, 0.3)
+	DamageNumber.spawn_at(global_position + Vector3(0.0, 1.7, 0.0), actual, dmg_color, self)
 	if hp <= 0.0:
 		_die()
 
