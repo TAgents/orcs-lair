@@ -14,7 +14,7 @@ class_name WaveDirector
 
 const RAIDER_SCENE: PackedScene = preload("res://scenes/raiders/raider.tscn")
 
-@export var grace_period_s: float = 6.0
+@export var grace_period_s: float = 12.0
 
 # Procedural growth knobs. Tune in the inspector or editor; defaults give
 # a 4-wave arc with roughly doubling difficulty by the boss.
@@ -72,9 +72,11 @@ func compute_wave_spec(wave_index: int) -> Array:
 	var spd: float = base_speed + speed_growth_per_wave * float(wave_index - 1)
 	var gold: int = base_gold_drop + gold_drop_growth * (wave_index - 1)
 	if is_boss:
-		# Single fat boss centered on the entrance. Worth more gold.
+		# Single fat boss spawning OUTSIDE the lair on the wilderness path.
+		# It walks north toward the orcs through the entrance gap, giving
+		# the player visible warning before contact.
 		return [{
-			"position": [0, 0, 9],
+			"position": [0, 0, 28],
 			"max_hp": hp * boss_hp_mult,
 			"damage": dmg * boss_damage_mult,
 			"move_speed": spd * 0.85,  # slightly slower — telegraphs the boss
@@ -83,11 +85,14 @@ func compute_wave_spec(wave_index: int) -> Array:
 		}]
 	var count: int = base_raiders_per_wave + raider_growth_per_wave * (wave_index - 1)
 	var spec: Array = []
-	# Spread evenly along the entrance line at z = 8 + wave_index * 0.5.
-	var z_pos: float = 8.0 + 0.5 * float(wave_index - 1)
+	# Spawn line: well outside the lair (z=22..28) on the wilderness, x
+	# clustered around the entrance gap (x∈[-3, 3]) so they funnel through
+	# without bumping the south walls. Walking distance ~22m → ~5s warning
+	# at base_speed=4 before they reach the orcs.
+	var z_pos: float = 22.0 + 1.5 * float(wave_index - 1)
 	var span: float = float(count - 1)
 	for i in count:
-		var x: float = lerp(-4.0, 4.0, 0.0 if span == 0.0 else float(i) / span)
+		var x: float = lerp(-3.0, 3.0, 0.0 if span == 0.0 else float(i) / span)
 		spec.append({
 			"position": [x, 0, z_pos],
 			"max_hp": hp,
