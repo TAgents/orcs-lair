@@ -87,6 +87,13 @@ func _unhandled_input(event: InputEvent) -> void:
 func start_raid() -> void:
 	_start_raid()
 
+const _CITY_GUARD_SCENE: PackedScene = preload("res://scenes/raiders/raider.tscn")
+const _CITY_GUARD_POSITIONS: Array[Vector3] = [
+	Vector3(-8, 0, 76),  # plaza north-west
+	Vector3( 8, 0, 76),  # plaza north-east
+	Vector3( 0, 0, 92),  # plaza south
+]
+
 func _start_raid() -> void:
 	var champion: Champion = null
 	for c in _champions:
@@ -99,6 +106,28 @@ func _start_raid() -> void:
 	# Face the city (camera will end up north of champion looking south).
 	champion.rotation.y = PI
 	Game.set_mode(Game.Mode.POSSESSING, champion)
+	_spawn_city_guards()
+
+# Spawns 3 raiders inside the city as defenders. They reuse Raider's AI —
+# pick nearest non-raider orc and chase — so the possessed champion gets
+# resistance during a raid. Ramped down stats vs lair.tscn raiders so the
+# raid feels like a skirmish, not a massacre.
+func _spawn_city_guards() -> void:
+	var raiders_root: Node3D = get_node_or_null("Raiders")
+	if raiders_root == null:
+		return
+	for i in _CITY_GUARD_POSITIONS.size():
+		var pos: Vector3 = _CITY_GUARD_POSITIONS[i]
+		var guard: Node = _CITY_GUARD_SCENE.instantiate()
+		guard.name = "CityGuard_%d" % i
+		raiders_root.add_child(guard)
+		guard.global_position = pos
+		(guard as Raider).max_hp = 30.0
+		(guard as Raider).hp = 30.0
+		(guard as Raider).damage = 6.0
+		(guard as Raider).move_speed = 3.6
+		(guard as Raider).gold_drop = 8
+		guard.add_to_group("city_guards")
 
 # Tab cycles: NONE → champion[0] → champion[1] → … → champion[N-1] → NONE → ...
 # Skips dead/freed champions automatically.

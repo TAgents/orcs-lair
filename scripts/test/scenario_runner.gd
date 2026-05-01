@@ -277,6 +277,12 @@ func _evaluate() -> Dictionary:
 		if Economy.gold != want:
 			ok = false
 			reasons.append("gold_eq want=%d got=%d" % [want, Economy.gold])
+	if crit.has("raiders_alive_gte"):
+		var want: int = int(crit["raiders_alive_gte"])
+		var got: int = _query_raiders_alive()
+		if got < want:
+			ok = false
+			reasons.append("raiders_alive_gte want>=%d got=%d" % [want, got])
 	if crit.has("mode_eq"):
 		var want: String = String(crit["mode_eq"])
 		var got: String = _query_mode_name()
@@ -340,6 +346,16 @@ func _query_champion_damage() -> float:
 	if _champion != null and is_instance_valid(_champion) and _champion.has_method("effective_damage"):
 		return float(_champion.effective_damage())
 	return 0.0
+
+func _query_raiders_alive() -> int:
+	var raiders_root: Node = _lair.get_node_or_null("Raiders")
+	if raiders_root == null:
+		return 0
+	var n: int = 0
+	for r in raiders_root.get_children():
+		if r is Raider and r.is_alive():
+			n += 1
+	return n
 
 func _query_mode_name() -> String:
 	match Game.mode:
