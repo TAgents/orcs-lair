@@ -11,6 +11,7 @@ extends CanvasLayer
 @onready var wave_label: Label = $Root/WaveLabel
 @onready var attr_label: Label = $Root/AttrLabel
 @onready var raid_label: Label = $Root/RaidLabel
+@onready var day_label: Label = $Root/DayLabel
 
 var _champion: Champion = null
 var _build_controller: BuildController = null
@@ -29,6 +30,9 @@ func _ready() -> void:
 	_find_build_controller()
 	_find_wave_director()
 	_find_lair_raid_signals()
+	Clock.day_changed.connect(_on_day_changed)
+	Clock.time_changed.connect(_on_time_changed)
+	_refresh_day()
 
 func _process(_delta: float) -> void:
 	# HP / level / XP always reflect the *named* champion (first one — Champion2
@@ -109,6 +113,27 @@ func _find_lair_raid_signals() -> void:
 func _on_raid_started() -> void:
 	_raid_complete = false
 	_refresh_mode()
+
+func _on_day_changed(_d: int) -> void:
+	_refresh_day()
+
+func _on_time_changed(_t: float) -> void:
+	_refresh_day()
+
+func _refresh_day() -> void:
+	var t: float = Clock.time_of_day
+	var phase: String
+	if t < 0.20:
+		phase = "🌙 Night"
+	elif t < 0.30:
+		phase = "☀ Dawn"
+	elif t < 0.70:
+		phase = "☀ Day"
+	elif t < 0.80:
+		phase = "☀ Dusk"
+	else:
+		phase = "🌙 Night"
+	day_label.text = "Day %d   %s" % [Clock.day_index, phase]
 
 func _on_raid_completed() -> void:
 	_raid_complete = true

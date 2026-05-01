@@ -3,6 +3,7 @@ extends Node3D
 const ScenarioRunnerCls: GDScript = preload("res://scripts/test/scenario_runner.gd")
 
 @onready var raiders_root: Node3D = $Raiders
+@onready var _sun: DirectionalLight3D = $DirectionalLight3D
 
 var _champions: Array[Champion] = []
 var _ended: bool = false
@@ -32,6 +33,8 @@ const RAID_GUARD_DAMAGE_PER_RAID: float = 1.0
 
 func _ready() -> void:
 	_collect_champions()
+	Clock.time_changed.connect(_on_time_changed)
+	_on_time_changed(Clock.time_of_day)
 
 	if _maybe_run_scenario():
 		# Scenario mode: ScenarioRunner spawns/configures raiders.
@@ -266,6 +269,22 @@ func complete_raid_for_test() -> void:
 	_raid_chests_looted = _raid_chests_total
 	_raid_guards_dead = _raid_guards_total
 	_check_raid_complete()
+
+# Day/night cycle: rotates the lair's DirectionalLight3D around the world X
+# axis so the sun's apparent altitude tracks Clock.time_of_day. Day-zero
+# pitch was -65° (the original "low warm sun"); we sweep ±90° on either
+# side so noon is straight down and midnight is straight up.
+func _on_time_changed(time_of_day: float) -> void:
+	if _sun == null:
+		return
+	# time_of_day 0=midnight, 0.25=sunrise, 0.5=noon, 0.75=sunset.
+	# Map to sun pitch: midnight = +90° (sun behind world), noon = -90°
+	# (straight down). Use sin curve so dawn/dusk pass smoothly.
+	var pitch: float = -sin(time_of_day * TAU - PI * 0.5) * deg_to_rad(75.0) - deg_to_rad(15.0)
+	_sun.rotation.x = pitch
+	# Cool the light at night, warm it at day.
+	var night_t: float = 0.0 if not Clock.is_night() else 1.0
+	_sun.light_energy = lerp(0.55, 0.18, night_t)
 
 # Tab cycles: NONE → champion[0] → champion[1] → … → champion[N-1] → NONE → ...
 # Skips dead/freed champions automatically.

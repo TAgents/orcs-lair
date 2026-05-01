@@ -1,0 +1,22 @@
+{
+	"name": "day_night_clock",
+	"description": "Direction A foundation: Clock autoload + day_index + time_of_day. Advance 48 in-game hours via Clock.advance_hours → day 3. Save (v7), reset to day 1, load → day 3 restored. Confirms Clock signals fire and the save round-trip works.",
+	"seed": 1010,
+	"max_duration_s": 2,
+	"champion": {
+		"max_hp": 100,
+		"damage": 18,
+		"move_speed": 5.0
+	},
+	"raiders": [],
+	"inputs": [
+		{"t": 0.2, "call": "/root/Clock.advance_hours", "args": [48.0], "note": "skip 2 days → day 3"},
+		{"t": 0.4, "call": "/root/SaveSystem.save_to", "args": ["/tmp/orcs_lair_clock_save.json"], "note": "save v7"},
+		{"t": 0.7, "call": "/root/Clock.reset", "args": [1, 0.25], "note": "wipe back to day 1 dawn"},
+		{"t": 1.0, "call": "/root/SaveSystem.load_from", "args": ["/tmp/orcs_lair_clock_save.json"], "note": "load → day 3 restored"}
+	],
+	"pass_criteria": {
+		"champion_alive": true,
+		"day_eq": 3
+	}
+}

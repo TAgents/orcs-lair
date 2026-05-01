@@ -25,7 +25,7 @@ extends Node
 # Backward-compatible: v1..v5 saves load cleanly. Missing fields default to
 # zero across the board.
 
-const SAVE_FORMAT_VERSION: int = 6
+const SAVE_FORMAT_VERSION: int = 7
 
 signal saved(path: String)
 signal loaded(path: String)
@@ -97,6 +97,8 @@ func _gather_state() -> Dictionary:
 		"gold": Economy.gold,
 		"inventory": Inventory.items(),
 		"raids_completed": raids_completed,
+		"day_index": Clock.day_index,
+		"time_of_day": Clock.time_of_day,
 		"rooms": rooms,
 		"champions": champs,
 	}
@@ -110,6 +112,8 @@ func _apply_state(data: Dictionary) -> void:
 	Inventory.clear()
 	for item_id in data.get("inventory", []):
 		Inventory.add(String(item_id))
+	# Restore day/time. Older saves (v1..v6) default to day 1 / sunrise.
+	Clock.reset(int(data.get("day_index", 1)), float(data.get("time_of_day", 0.25)))
 	var lair: Node = get_tree().root.get_node_or_null("Lair")
 	if lair != null and "raids_completed" in lair:
 		lair.raids_completed = int(data.get("raids_completed", 0))
