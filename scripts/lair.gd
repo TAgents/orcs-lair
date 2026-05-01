@@ -207,6 +207,17 @@ func _on_raid_guard_died(_orc: Node) -> void:
 	_raid_guards_dead += 1
 	_check_raid_complete()
 
+# Public read for HUD / scenarios. Snapshot of the current raid bookkeeping.
+func raid_progress() -> Dictionary:
+	return {
+		"active": _raid_active,
+		"chests_looted": _raid_chests_looted,
+		"chests_total": _raid_chests_total,
+		"guards_dead": _raid_guards_dead,
+		"guards_total": _raid_guards_total,
+		"pending_return": _raid_complete_pending_return,
+	}
+
 func _check_raid_complete() -> void:
 	if not _raid_active:
 		return
