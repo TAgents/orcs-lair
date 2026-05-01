@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3]
+[gd_scene load_steps=24 format=3]
 
 [ext_resource type="Script" path="res://scripts/lair.gd" id="1_lair"]
 [ext_resource type="PackedScene" path="res://scenes/cameras/camera_rig.tscn" id="2_rig"]
@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="6_hud"]
 [ext_resource type="PackedScene" path="res://scenes/build/build_controller.tscn" id="7_build"]
 [ext_resource type="PackedScene" path="res://scenes/wave_director.tscn" id="8_waves"]
+[ext_resource type="Script" path="res://scripts/effects/firepit.gd" id="9_firepit"]
 
 [sub_resource type="ProceduralSkyMaterial" id="sky_mat"]
 sky_top_color = Color(0.12, 0.10, 0.18, 1)
@@ -22,11 +23,24 @@ sky_material = SubResource("sky_mat")
 background_mode = 2
 sky = SubResource("sky")
 ambient_light_source = 3
-ambient_light_color = Color(0.55, 0.5, 0.6, 1)
-ambient_light_energy = 0.7
+ambient_light_color = Color(0.45, 0.42, 0.55, 1)
+ambient_light_energy = 0.45
+tonemap_mode = 2
+ssao_enabled = true
+ssao_radius = 1.2
+ssao_intensity = 1.6
+glow_enabled = true
+glow_intensity = 0.6
+glow_strength = 0.9
+glow_blend_mode = 1
+glow_hdr_threshold = 1.0
+adjustment_enabled = true
+adjustment_brightness = 1.0
+adjustment_contrast = 1.08
+adjustment_saturation = 1.18
 fog_enabled = true
-fog_light_color = Color(0.18, 0.16, 0.2, 1)
-fog_density = 0.008
+fog_light_color = Color(0.18, 0.13, 0.1, 1)
+fog_density = 0.012
 
 [sub_resource type="StandardMaterial3D" id="mat_floor"]
 albedo_color = Color(0.32, 0.30, 0.28, 1)
@@ -60,6 +74,16 @@ size = Vector3(10, 4, 1)
 [sub_resource type="BoxMesh" id="mesh_wall_s"]
 size = Vector3(10, 4, 1)
 
+[sub_resource type="StandardMaterial3D" id="mat_fire"]
+albedo_color = Color(0.18, 0.08, 0.04, 1)
+roughness = 0.95
+emission_enabled = true
+emission = Color(1, 0.55, 0.18, 1)
+emission_energy_multiplier = 4.0
+
+[sub_resource type="BoxMesh" id="mesh_fire_base"]
+size = Vector3(0.7, 0.25, 0.7)
+
 [node name="Lair" type="Node3D"]
 script = ExtResource("1_lair")
 
@@ -68,9 +92,23 @@ environment = SubResource("env")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.7071068, -0.5, 0.5, 0, 0.7071068, 0.7071068, -0.7071068, -0.5, 0.5, 0, 12, 0)
-light_color = Color(1, 0.94, 0.88, 1)
-light_energy = 1.5
+light_color = Color(0.78, 0.85, 1, 1)
+light_energy = 0.55
 shadow_enabled = true
+
+[node name="FirePit" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
+light_color = Color(1, 0.55, 0.22, 1)
+light_energy = 4.0
+omni_range = 14.0
+omni_attenuation = 1.6
+shadow_enabled = true
+script = ExtResource("9_firepit")
+
+[node name="FirePitBase" type="MeshInstance3D" parent="FirePit"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.45, 0)
+mesh = SubResource("mesh_fire_base")
+material_override = SubResource("mat_fire")
 
 [node name="Floor" type="StaticBody3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)

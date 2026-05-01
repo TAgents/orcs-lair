@@ -112,7 +112,13 @@ func _swap_in_visual_model(model_path: String, scale: float = 2.0) -> void:
 		existing_dir.queue_free()
 	instance.name = "Mesh"
 	add_child(instance)
-	(instance as Node3D).scale = Vector3(scale, scale, scale)
+	var node3d := instance as Node3D
+	node3d.scale = Vector3(scale, scale, scale)
+	# Kenney GLBs export with +Z as the model's visual forward, but Godot's
+	# CharacterBody convention (and our hitbox at local -Z) treats -Z as
+	# forward. Rotate the visual 180° so the character's face matches its
+	# movement / hitbox direction.
+	node3d.rotation.y = PI
 	# Cache the imported AnimationPlayer (Kenney models put it under the GLB root).
 	_anim_player = instance.get_node_or_null("AnimationPlayer")
 	if _anim_player != null:
