@@ -1,0 +1,23 @@
+{
+	"name": "raid_with_guards",
+	"description": "Phase C-3: city guards spawn on raid. Press M to enter WORLD_MAP, then 2 to raid. _start_raid teleports the champion outside AND spawns 3 raiders inside the city as defenders. After the trigger fires, at least 3 raiders should be alive.",
+	"seed": 8811,
+	"max_duration_s": 2,
+	"champion": {
+		"max_hp": 100,
+		"damage": 18,
+		"move_speed": 5.0
+	},
+	"raiders": [],
+	"inputs": [
+		{"t": 0.2, "press": "world_map_toggle"},
+		{"t": 0.3, "release": "world_map_toggle"},
+		{"t": 0.6, "press": "world_dest_raid"},
+		{"t": 0.7, "release": "world_dest_raid"}
+	],
+	"pass_criteria": {
+		"champion_alive": true,
+		"mode_eq": "POSSESSING",
+		"raiders_alive_gte": 3
+	}
+}
