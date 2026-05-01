@@ -1,0 +1,29 @@
+{
+	"name": "outside_walk",
+	"description": "Smoke test for the outside wilderness geometry. Possesses the champion (so the third-person camera follows) then teleports to four checkpoints — entrance, stone path, courtyard, village ruins. Verifies OutsideGround supports the champion (no fall) and the village silhouette renders. Run interactively (no --headless).",
+	"seed": 4242,
+	"max_duration_s": 8,
+	"champion": {
+		"max_hp": 100,
+		"damage": 18,
+		"move_speed": 5.0
+	},
+	"raiders": [],
+	"inputs": [
+		{"t": 0.2, "press": "possess_toggle"},
+		{"t": 0.3, "release": "possess_toggle"},
+		{"t": 1.2, "call": "Champion.teleport", "args": [0, 0.85, 14.0], "note": "just outside entrance"},
+		{"t": 3.0, "call": "Champion.teleport", "args": [0, 0.85, 30.0], "note": "stone path mid"},
+		{"t": 4.8, "call": "Champion.teleport", "args": [8, 0.85, 45.0], "note": "courtyard near rocks"},
+		{"t": 6.4, "call": "Champion.teleport", "args": [0, 0.85, 58.0], "note": "near village ruins"}
+	],
+	"screenshots": [
+		{"t": 2.4, "path": "/tmp/orcs_lair_outside/01_entrance.png"},
+		{"t": 4.2, "path": "/tmp/orcs_lair_outside/02_path.png"},
+		{"t": 6.0, "path": "/tmp/orcs_lair_outside/03_courtyard.png"},
+		{"t": 7.6, "path": "/tmp/orcs_lair_outside/04_village.png"}
+	],
+	"pass_criteria": {
+		"champion_alive": true
+	}
+}
