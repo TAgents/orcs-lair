@@ -27,6 +27,27 @@ static func from_id(id: String) -> Equipment:
 			return _make("warrior_charm", "Warrior's Charm", Slot.TRINKET, 3.0, 5.0)
 	return null
 
+# Per-item upgrade ladder. Lookup by item_id → array of tier ids.
+# Index with min(raid_count, ladder.size() - 1). Unknown ids pass through.
+# Tuned so an early-game rusty_axe / leather_jerkin gets replaced by
+# iron-tier gear by the third raid; iron-tier and trinkets don't upgrade.
+const _UPGRADE_LADDER: Dictionary = {
+	"rusty_axe":      ["rusty_axe", "iron_axe", "iron_axe"],
+	"leather_jerkin": ["leather_jerkin", "leather_jerkin", "iron_plate"],
+	"iron_axe":       ["iron_axe"],
+	"iron_plate":     ["iron_plate"],
+	"warrior_charm":  ["warrior_charm"],
+}
+
+static func upgrade(item_id: String, raid_count: int) -> String:
+	if not _UPGRADE_LADDER.has(item_id):
+		return item_id
+	var ladder: Array = _UPGRADE_LADDER[item_id]
+	if ladder.is_empty():
+		return item_id
+	var idx: int = clamp(raid_count, 0, ladder.size() - 1)
+	return String(ladder[idx])
+
 static func _make(id: String, n: String, s: int, dmg: float, hp: float) -> Equipment:
 	var e := Equipment.new()
 	e.item_id = id

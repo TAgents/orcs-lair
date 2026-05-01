@@ -1,0 +1,24 @@
+{
+	"name": "raid_item_upgrade",
+	"description": "Phase 5 risk/reward: chest items walk Equipment.upgrade per raids_completed. Set raids_completed=2 → ChestBuildingW base 'leather_jerkin' should upgrade to 'iron_plate'. Trigger raid via M+2, teleport champion onto W chest. Final inventory holds 'iron_plate' (not 'leather_jerkin').",
+	"seed": 7373,
+	"max_duration_s": 4,
+	"champion": {
+		"max_hp": 100,
+		"damage": 18,
+		"move_speed": 5.0
+	},
+	"raiders": [],
+	"inputs": [
+		{"t": 0.2, "call": "/root/Lair.set", "args": ["raids_completed", 2], "note": "tier-2 loot"},
+		{"t": 0.4, "press": "world_map_toggle"},
+		{"t": 0.5, "release": "world_map_toggle"},
+		{"t": 0.7, "press": "world_dest_raid"},
+		{"t": 0.8, "release": "world_dest_raid"},
+		{"t": 1.5, "call": "Champion.teleport", "args": [-12, 0.85, 83.0], "note": "drop onto ChestBuildingW (W has leather_jerkin → iron_plate at tier 2)"}
+	],
+	"pass_criteria": {
+		"champion_alive": true,
+		"inventory_has": "iron_plate"
+	}
+}
