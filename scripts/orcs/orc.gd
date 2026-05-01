@@ -5,6 +5,11 @@ class_name Orc
 @export var move_speed: float = 4.0
 @export var damage: float = 10.0
 @export var faction: String = "orc"
+# Out-of-combat regen. 0 = disabled (default). Heals regen_rate hp/sec
+# while alive, hp < max_hp, and at least REGEN_OOC_DELAY seconds have
+# passed since the last take_damage. Champion / Worker opt in via .tscn.
+@export var regen_rate: float = 0.0
+const REGEN_OOC_DELAY: float = 3.0
 
 @onready var hp: float = max_hp
 
@@ -13,6 +18,9 @@ signal damaged(orc: Orc, amount: float)
 
 const GRAVITY: float = 20.0
 var _vulnerable: bool = true
+# Wall-clock timestamp of the last take_damage hit. Initialised far in the
+# past so a freshly-spawned damaged unit can immediately start regenerating.
+var _last_damage_msec: int = -1000000
 
 # AnimationPlayer of the swapped-in GLB model (Kenney Mini Dungeon ships
 # rigged characters with idle/walk/sprint/attack-melee-*/die/interact-*).
@@ -22,6 +30,7 @@ var _anim_player: AnimationPlayer = null
 func take_damage(amount: float, _source: Node = null) -> void:
 	if not _vulnerable or hp <= 0.0:
 		return
+	_last_damage_msec = Time.get_ticks_msec()
 	var actual: float = min(amount, hp)
 	hp = max(0.0, hp - amount)
 	damaged.emit(self, amount)
@@ -37,6 +46,17 @@ func heal(amount: float) -> void:
 	if hp <= 0.0 or amount <= 0.0:
 		return
 	hp = min(max_hp, hp + amount)
+
+# Out-of-combat regen pump. Subclasses keep their own _physics_process
+# overrides; _process is unused there, so this base implementation runs
+# unmodified for every Orc subclass with regen_rate > 0 set in its scene.
+func _process(delta: float) -> void:
+	if regen_rate <= 0.0 or hp <= 0.0 or hp >= max_hp:
+		return
+	var since_msec: int = Time.get_ticks_msec() - _last_damage_msec
+	if since_msec < int(REGEN_OOC_DELAY * 1000.0):
+		return
+	heal(regen_rate * delta)
 
 # Test/scenario helper: jump to a world position. Three floats so it can be
 # called from probe_bot via JSON-encoded args (no Vector3 in JSON).
