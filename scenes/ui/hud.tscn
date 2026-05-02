@@ -101,6 +101,16 @@ text = "Day 1   ☀ Dawn"
 horizontal_alignment = 1
 theme_override_font_sizes/font_size = 18
 
+[node name="ToastRoot" type="VBoxContainer" parent="Root"]
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -240.0
+offset_top = 48.0
+offset_right = 240.0
+offset_bottom = 200.0
+mouse_filter = 2
+alignment = 1
+
 [node name="WaveLabel" type="Label" parent="Root"]
 visible = false
 anchor_left = 1.0

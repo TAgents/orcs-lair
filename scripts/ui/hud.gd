@@ -12,6 +12,7 @@ extends CanvasLayer
 @onready var attr_label: Label = $Root/AttrLabel
 @onready var raid_label: Label = $Root/RaidLabel
 @onready var day_label: Label = $Root/DayLabel
+@onready var toast_root: VBoxContainer = $Root/ToastRoot
 
 var _champion: Champion = null
 var _build_controller: BuildController = null
@@ -35,6 +36,19 @@ func _ready() -> void:
 	Clock.day_changed.connect(_on_day_changed)
 	Clock.time_changed.connect(_on_time_changed)
 	_refresh_day()
+	# Toast pipeline.
+	Toasts.toast_requested.connect(_on_toast_requested)
+	# Hooks that fire the most useful toasts. Keep this set tight — too
+	# many is noise. Worker class_earned is wired per-worker on _ready
+	# below; new workers spawned later (none today, but future) won't
+	# auto-fire toasts unless someone calls Toasts.show.
+	if Research != null:
+		Research.branch_unlocked.connect(_on_research_branch_unlocked)
+	if Economy != null:
+		Economy.food_changed.connect(_on_food_changed_for_toast)
+	for w in get_tree().get_nodes_in_group("workers"):
+		if w is Worker and not w.class_earned.is_connected(_on_worker_class_earned):
+			w.class_earned.connect(_on_worker_class_earned)
 
 func _process(_delta: float) -> void:
 	# HP / level / XP always reflect the *named* champion (first one — Champion2
@@ -115,9 +129,11 @@ func _find_lair_raid_signals() -> void:
 func _on_raid_started() -> void:
 	_raid_complete = false
 	_refresh_mode()
+	Toasts.show("RAID — defenders incoming", Toasts.COLOR_WARN)
 
-func _on_day_changed(_d: int) -> void:
+func _on_day_changed(d: int) -> void:
 	_refresh_day()
+	Toasts.show("Day %d / %d" % [d, Game.campaign_target_day], Toasts.COLOR_INFO)
 
 func _on_time_changed(_t: float) -> void:
 	_refresh_day()
@@ -140,6 +156,7 @@ func _refresh_day() -> void:
 func _on_raid_completed() -> void:
 	_raid_complete = true
 	_refresh_mode()
+	Toasts.show("Raid complete — M to return", Toasts.COLOR_GOOD)
 
 func _on_wave_started(wave_idx: int, total: int) -> void:
 	wave_label.visible = true
@@ -214,3 +231,43 @@ func _on_food_changed(_amount: int) -> void:
 
 func _refresh_gold() -> void:
 	gold_label.text = "Gold: %d   Ore: %d   Food: %d" % [Economy.gold, Economy.ore, Economy.food]
+
+# --- Toast pipeline ----------------------------------------------------------
+
+const _TOAST_LIFETIME: float = 3.0
+
+func _on_toast_requested(text: String, color: Color) -> void:
+	if toast_root == null:
+		return
+	var lbl := Label.new()
+	lbl.text = text
+	lbl.modulate = color
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.add_theme_font_size_override("font_size", 18)
+	lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0, 1))
+	lbl.add_theme_constant_override("outline_size", 6)
+	# Insert at top so newest toast is most prominent.
+	toast_root.add_child(lbl)
+	toast_root.move_child(lbl, 0)
+	var tw := create_tween().set_parallel(false)
+	tw.tween_interval(_TOAST_LIFETIME * 0.7)
+	tw.tween_property(lbl, "modulate:a", 0.0, _TOAST_LIFETIME * 0.3)
+	tw.tween_callback(lbl.queue_free)
+
+func _on_research_branch_unlocked(branch: String) -> void:
+	Toasts.show("Unlocked %s branch" % branch.capitalize(), Toasts.COLOR_GOOD)
+
+func _on_worker_class_earned(w: Worker, new_class: String) -> void:
+	Toasts.show("%s became a %s" % [String(w.name), new_class], Toasts.COLOR_GOOD)
+
+# Fires once when food crosses below the warning threshold, then re-arms
+# only after food climbs back above it. Avoids spam at every tick.
+const _FOOD_WARN_AT: int = 10
+var _food_warned: bool = false
+
+func _on_food_changed_for_toast(amount: int) -> void:
+	if amount <= _FOOD_WARN_AT and not _food_warned:
+		_food_warned = true
+		Toasts.show("Food critical: %d" % amount, Toasts.COLOR_DANGER)
+	elif amount > _FOOD_WARN_AT:
+		_food_warned = false
