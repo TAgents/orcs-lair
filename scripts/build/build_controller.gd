@@ -163,7 +163,43 @@ func _spawn_room_visual(grid: Vector2i, room: Room) -> Node3D:
 	mat.emission_energy_multiplier = 0.25
 	mesh.material_override = mat
 	n.add_child(mesh)
+	_add_room_border(n, room)
 	return n
+
+# Raised border around the room perimeter so the placed room reads as a
+# room (not a flat floor tile). 4 thin BoxMeshes — no collision, so the
+# possessed champion can walk straight through; visually obvious from
+# any camera angle. Border colour is the room colour darkened.
+const _BORDER_HEIGHT: float = 0.35
+const _BORDER_THICKNESS: float = 0.15
+
+func _add_room_border(parent: Node3D, room: Room) -> void:
+	var fx: float = room.footprint.x * CELL_SIZE
+	var fz: float = room.footprint.y * CELL_SIZE
+	var border_color := Color(room.color.r * 0.55, room.color.g * 0.55, room.color.b * 0.55, 1)
+	var border_mat := StandardMaterial3D.new()
+	border_mat.albedo_color = border_color
+	border_mat.roughness = 0.7
+	border_mat.emission_enabled = true
+	border_mat.emission = room.color
+	border_mat.emission_energy_multiplier = 0.5
+	# Four edges: N (-Z), S (+Z), W (-X), E (+X). Each is a thin slab
+	# centred on the room's local origin (which is the floor tile centre,
+	# y = ROOM_HEIGHT * 0.5 above the world floor).
+	var slabs: Array = [
+		[Vector3(0, _BORDER_HEIGHT * 0.5, -fz * 0.5), Vector3(fx, _BORDER_HEIGHT, _BORDER_THICKNESS)],
+		[Vector3(0, _BORDER_HEIGHT * 0.5,  fz * 0.5), Vector3(fx, _BORDER_HEIGHT, _BORDER_THICKNESS)],
+		[Vector3(-fx * 0.5, _BORDER_HEIGHT * 0.5, 0), Vector3(_BORDER_THICKNESS, _BORDER_HEIGHT, fz)],
+		[Vector3( fx * 0.5, _BORDER_HEIGHT * 0.5, 0), Vector3(_BORDER_THICKNESS, _BORDER_HEIGHT, fz)],
+	]
+	for s in slabs:
+		var bm := BoxMesh.new()
+		bm.size = s[1]
+		var mi := MeshInstance3D.new()
+		mi.mesh = bm
+		mi.position = s[0]
+		mi.material_override = border_mat
+		parent.add_child(mi)
 
 func _ghost_color(valid: bool, base: Color) -> Color:
 	if valid:
