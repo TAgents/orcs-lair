@@ -13,6 +13,8 @@ extends CanvasLayer
 @onready var raid_label: Label = $Root/RaidLabel
 @onready var day_label: Label = $Root/DayLabel
 @onready var toast_root: VBoxContainer = $Root/ToastRoot
+@onready var help_overlay: ColorRect = $Root/HelpOverlay
+@onready var help_label: Label = $Root/HelpOverlay/HelpLabel
 
 var _champion: Champion = null
 var _build_controller: BuildController = null
@@ -38,6 +40,12 @@ func _ready() -> void:
 	_refresh_day()
 	# Toast pipeline.
 	Toasts.toast_requested.connect(_on_toast_requested)
+	# Help overlay (F1). Auto-shows on first launch via user:// flag,
+	# then hides until the player presses F1 again.
+	help_label.text = _build_help_text()
+	if not _help_seen():
+		help_overlay.visible = true
+		_mark_help_seen()
 	# Hooks that fire the most useful toasts. Keep this set tight — too
 	# many is noise. Worker class_earned is wired per-worker on _ready
 	# below; new workers spawned later (none today, but future) won't
@@ -271,3 +279,44 @@ func _on_food_changed_for_toast(amount: int) -> void:
 		Toasts.show("Food critical: %d" % amount, Toasts.COLOR_DANGER)
 	elif amount > _FOOD_WARN_AT:
 		_food_warned = false
+
+# --- Help overlay (F1) -------------------------------------------------------
+
+const _HELP_FLAG_PATH: String = "user://help_seen.flag"
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("help_toggle"):
+		help_overlay.visible = not help_overlay.visible
+
+func _help_seen() -> bool:
+	return FileAccess.file_exists(_HELP_FLAG_PATH)
+
+func _mark_help_seen() -> void:
+	var f := FileAccess.open(_HELP_FLAG_PATH, FileAccess.WRITE)
+	if f != null:
+		f.store_string("1")
+		f.close()
+
+func _build_help_text() -> String:
+	return "ORCS' LAIR — KEY MAP   (F1 to close)\n\n" + \
+		"LAIR (god view)\n" + \
+		"   Tab          possess / cycle champions\n" + \
+		"   B            enter Build mode\n" + \
+		"   M            world map\n" + \
+		"   F5 / F9      quicksave / quickload\n" + \
+		"   R            restart scene\n\n" + \
+		"BUILD mode\n" + \
+		"   1 Sleep · 2 Train · 3 Treas · 4 Mine · 5 Kitchen · 6 Library\n" + \
+		"   LMB place · RMB demolish · Esc / B exit\n\n" + \
+		"POSSESSION (third-person)\n" + \
+		"   WASD         move (camera-relative)\n" + \
+		"   J            attack         K  cleave (AOE)\n" + \
+		"   L            charge         N  roar  (wide AOE)\n" + \
+		"   Space        dodge (i-frames)\n" + \
+		"   Tab          release\n\n" + \
+		"WORLD MAP\n" + \
+		"   1 Defend Lair · 2 Raid City · M exit\n\n" + \
+		"PROGRESSION\n" + \
+		"   U / I / O    spend STR / VIT / AGI attribute point\n\n" + \
+		"GOAL: survive 30 days. Build a Kitchen by ~day 5 or your\n" + \
+		"workers will desert from hunger."
