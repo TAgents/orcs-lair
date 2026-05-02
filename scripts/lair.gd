@@ -302,6 +302,8 @@ func _on_day_changed(new_day: int) -> void:
 		var w: Node = alive_workers[i]
 		if is_instance_valid(w):
 			w.queue_free()
+	if to_free > 0:
+		Toasts.show("%d worker%s deserted (no food)" % [to_free, "" if to_free == 1 else "s"], Toasts.COLOR_DANGER)
 
 # Day/night cycle: rotates the lair's DirectionalLight3D around the world X
 # axis so the sun's apparent altitude tracks Clock.time_of_day. Day-zero
