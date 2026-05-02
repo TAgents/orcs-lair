@@ -515,6 +515,11 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 97)
 [node name="Civilian8" parent="Outside/Civilians" instance=ExtResource("16_civilian")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 78)
 
+[node name="BoundaryWalls" type="Node3D" parent="Outside"]
+script = ExtResource("14_village")
+height_layers = 3
+segments = [[Vector3(-40, 0, 112), Vector3(40, 0, 112)], [Vector3(-40, 0, 12), Vector3(-40, 0, 112)], [Vector3(40, 0, 12), Vector3(40, 0, 112)]]
+
 [node name="OutsideBoundary" type="Node3D" parent="Outside"]
 
 [node name="BoundN" type="StaticBody3D" parent="Outside/OutsideBoundary"]
