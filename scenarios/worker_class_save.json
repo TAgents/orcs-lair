@@ -1,0 +1,22 @@
+{
+	"name": "worker_class_save",
+	"description": "Save format v12: worker_class persists. Set Worker1.worker_class='Smith' directly, save, wipe class, load → class restored. Confirms v12 round-trip without forcing the 8s WORKING earning loop.",
+	"seed": 1919,
+	"max_duration_s": 2,
+	"champion": {
+		"max_hp": 100,
+		"damage": 14,
+		"move_speed": 5.0
+	},
+	"raiders": [],
+	"inputs": [
+		{"t": 0.2, "call": "/root/Lair/Workers/Worker1.set", "args": ["worker_class", "Smith"]},
+		{"t": 0.4, "call": "/root/SaveSystem.save_to", "args": ["/tmp/orcs_lair_wclass.json"]},
+		{"t": 0.7, "call": "/root/Lair/Workers/Worker1.set", "args": ["worker_class", ""]},
+		{"t": 1.0, "call": "/root/SaveSystem.load_from", "args": ["/tmp/orcs_lair_wclass.json"]}
+	],
+	"pass_criteria": {
+		"champion_alive": true,
+		"workers_classed_eq": 1
+	}
+}
