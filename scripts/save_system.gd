@@ -25,7 +25,7 @@ extends Node
 # Backward-compatible: v1..v5 saves load cleanly. Missing fields default to
 # zero across the board.
 
-const SAVE_FORMAT_VERSION: int = 11
+const SAVE_FORMAT_VERSION: int = 12
 
 signal saved(path: String)
 signal loaded(path: String)
@@ -106,7 +106,18 @@ func _gather_state() -> Dictionary:
 		"campaign_target_day": Game.campaign_target_day,
 		"rooms": rooms,
 		"champions": champs,
+		"workers": _gather_workers(),
 	}
+
+func _gather_workers() -> Array:
+	var out: Array = []
+	for w in get_tree().get_nodes_in_group("workers"):
+		if w is Worker:
+			out.append({
+				"name": String(w.name),
+				"worker_class": String(w.worker_class),
+			})
+	return out
 
 func _apply_state(data: Dictionary) -> void:
 	var bc: Node = _build_controller()
@@ -125,6 +136,15 @@ func _apply_state(data: Dictionary) -> void:
 	# in this save already include the buffs).
 	Research.restore(int(data.get("research_points", 0)), data.get("research_unlocked", []))
 	Game.campaign_target_day = int(data.get("campaign_target_day", 30))
+	# Workers (v12+): apply per-name class assignment. Older saves leave
+	# worker_class at its default ("") so the in-room earning loop reruns.
+	for w_data in data.get("workers", []):
+		var name_str: String = String(w_data.get("name", ""))
+		if name_str == "":
+			continue
+		var worker: Node = get_tree().root.get_node_or_null("Lair/Workers/" + name_str)
+		if worker is Worker:
+			worker.worker_class = String(w_data.get("worker_class", ""))
 	var lair: Node = get_tree().root.get_node_or_null("Lair")
 	if lair != null and "raids_completed" in lair:
 		lair.raids_completed = int(data.get("raids_completed", 0))
