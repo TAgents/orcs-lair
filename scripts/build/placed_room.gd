@@ -45,6 +45,7 @@ var _assigned_worker: Node = null
 var _placed_at_msec: int = 0
 var _forge_progress: float = 0.0
 var _forge_outputs_made: int = 0
+var _status_label: Label3D = null
 
 signal worker_assigned(worker: Node)
 signal worker_unassigned(worker: Node)
@@ -52,6 +53,68 @@ signal worker_unassigned(worker: Node)
 func _ready() -> void:
 	add_to_group("placed_rooms")
 	_placed_at_msec = Time.get_ticks_msec()
+	_setup_status_label()
+
+# Status billboard floats above the room and updates each frame to show
+# what's running, who's working it, and how full the bar is. Skipped in
+# headless (no rendering, no need).
+func _setup_status_label() -> void:
+	if DisplayServer.get_name() == "headless":
+		return
+	_status_label = Label3D.new()
+	_status_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	_status_label.no_depth_test = true
+	_status_label.fixed_size = true
+	_status_label.pixel_size = 0.005
+	_status_label.font_size = 32
+	_status_label.outline_size = 6
+	_status_label.outline_modulate = Color(0, 0, 0, 1)
+	_status_label.modulate = Color(1, 0.95, 0.7, 1)
+	_status_label.position = Vector3(0, 1.6, 0)
+	add_child(_status_label)
+	_refresh_status_label()
+
+func _refresh_status_label() -> void:
+	if _status_label == null:
+		return
+	var head: String = Room.make(room_type).display_name
+	var w: Node = get_assigned_worker()
+	if w == null:
+		_status_label.text = head + "\n(unassigned)"
+		return
+	var wname: String = String(w.name)
+	var wclass: String = String(w.worker_class) if "worker_class" in w else ""
+	var class_marker: String = ""
+	var expected: String = String(CLASS_FOR_ROOM_TYPE.get(room_type, ""))
+	if wclass != "":
+		class_marker = " ★" if wclass == expected else ""
+		wname = "%s (%s%s)" % [wname, wclass, class_marker]
+	# State: WORKING shows production rate or progress bar; otherwise "incoming".
+	if not (w is Worker and w.is_working()):
+		_status_label.text = "%s\n%s · incoming" % [head, wname]
+		return
+	var rate_line: String = ""
+	var mult: float = _class_multiplier()
+	match room_type:
+		Room.Type.TREASURY:
+			rate_line = "%.2f g/s" % (TREASURY_GOLD_PER_SEC * mult)
+		Room.Type.MINE:
+			rate_line = "%.2f ore/s" % (MINE_ORE_PER_SEC * mult)
+		Room.Type.KITCHEN:
+			rate_line = "%.2f food/s" % (KITCHEN_FOOD_PER_SEC * mult)
+		Room.Type.LIBRARY:
+			rate_line = "%.2f res/s" % (LIBRARY_RESEARCH_PER_SEC * mult)
+		Room.Type.FORGE:
+			var pct: int = int(round((_forge_progress / FORGE_CRAFT_TIME) * 100.0))
+			var bar_len: int = 8
+			var filled: int = clamp(int(round(float(pct) * 0.01 * float(bar_len))), 0, bar_len)
+			var bar: String = "▮".repeat(filled) + "▯".repeat(bar_len - filled)
+			rate_line = "%s %d%%" % [bar, pct]
+		Room.Type.TRAINING:
+			rate_line = "+%.0f dmg" % TRAINING_DAMAGE_BONUS
+		Room.Type.SLEEPING:
+			rate_line = "%.0f hp/s" % SLEEPING_HP_PER_SEC
+	_status_label.text = "%s\n%s · %s" % [head, wname, rate_line]
 
 func age_seconds() -> float:
 	return float(Time.get_ticks_msec() - _placed_at_msec) / 1000.0
@@ -83,6 +146,9 @@ func has_assigned_worker() -> bool:
 # --- Per-frame effects -------------------------------------------------------
 
 func _process(delta: float) -> void:
+	# Status label refreshes every frame so production rate / forge bar /
+	# class star track changes live. Cheap — single Label3D per room.
+	_refresh_status_label()
 	if not is_active():
 		return
 	var mult: float = _class_multiplier()
