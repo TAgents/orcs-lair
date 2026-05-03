@@ -227,7 +227,7 @@ func _refresh_build_label() -> void:
 	if _build_controller == null:
 		return
 	var room := Room.make(_build_controller.current_type)
-	build_label.text = "Selected: %s (%dg)   [1 Sleep %dg · 2 Train %dg · 3 Treas %dg · 4 Mine %dg · 5 Kitchen %dg · 6 Library %dg · LMB place · RMB demolish]" % [
+	build_label.text = "Selected: %s (%dg)   [1 Sleep %dg · 2 Train %dg · 3 Treas %dg · 4 Mine %dg · 5 Kitchen %dg · 6 Library %dg · 7 Jail %dg · LMB place · RMB demolish]" % [
 		room.display_name, room.cost,
 		Room.make(Room.Type.SLEEPING).cost,
 		Room.make(Room.Type.TRAINING).cost,
@@ -235,6 +235,7 @@ func _refresh_build_label() -> void:
 		Room.make(Room.Type.MINE).cost,
 		Room.make(Room.Type.KITCHEN).cost,
 		Room.make(Room.Type.LIBRARY).cost,
+		Room.make(Room.Type.JAIL).cost,
 	]
 
 func _on_game_over(victory: bool) -> void:
@@ -360,7 +361,7 @@ func _build_help_text() -> String:
 		"   F5 / F9      quicksave / quickload\n" + \
 		"   R            restart scene\n\n" + \
 		"BUILD mode\n" + \
-		"   1 Sleep · 2 Train · 3 Treas · 4 Mine · 5 Kitchen · 6 Library\n" + \
+		"   1 Sleep · 2 Train · 3 Treas · 4 Mine · 5 Kitchen · 6 Library · 7 Jail\n" + \
 		"   LMB place · RMB demolish · Esc / B exit\n\n" + \
 		"POSSESSION (third-person)\n" + \
 		"   WASD         move (camera-relative)\n" + \

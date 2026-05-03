@@ -216,7 +216,7 @@ offset_left = 16.0
 offset_top = 104.0
 offset_right = 1140.0
 offset_bottom = 132.0
-text = "Selected: Training   [1 Sleep · 2 Train · 3 Treas · 4 Mine · 5 Kitchen · 6 Library · LMB place · RMB demolish]"
+text = "Selected: Training   [1 Sleep · 2 Train · 3 Treas · 4 Mine · 5 Kitchen · 6 Library · 7 Jail · LMB place · RMB demolish]"
 theme_override_font_sizes/font_size = 14
 
 [node name="Banner" type="Label" parent="Root"]
