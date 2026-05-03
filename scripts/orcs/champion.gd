@@ -179,6 +179,7 @@ func _ai_step() -> void:
 func _swing() -> void:
 	_attack_timer = attack_cooldown
 	play_anim("attack-melee-right", true)
+	Audio.play("swing")
 	hitbox.monitoring = true
 	# Snap-check anything already overlapping at swing start.
 	for body in hitbox.get_overlapping_bodies():
