@@ -23,6 +23,7 @@ Inventory="*res://scripts/inventory.gd"
 Clock="*res://scripts/clock.gd"
 Research="*res://scripts/research.gd"
 Toasts="*res://scripts/toasts.gd"
+Audio="*res://scripts/audio.gd"
 SaveSystem="*res://scripts/save_system.gd"
 
 [input]
