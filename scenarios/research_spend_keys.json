@@ -1,0 +1,25 @@
+{
+	"name": "research_spend_keys",
+	"description": "F2/F3/F4 keys spend research on Berserker/Tactician/Survivor. Seed Research.points=110 (enough for 2 unlocks at 50 each). Press F2 → berserker unlocks (60 left). Press F3 → tactician unlocks (10 left). Champion damage scales 1.2× from 18 → 21.6.",
+	"seed": 2020,
+	"max_duration_s": 2,
+	"champion": {
+		"max_hp": 100,
+		"damage": 18,
+		"move_speed": 5.0
+	},
+	"raiders": [],
+	"inputs": [
+		{"t": 0.1, "call": "/root/Research.set", "args": ["points", 110]},
+		{"t": 0.3, "press": "research_berserker"},
+		{"t": 0.4, "release": "research_berserker"},
+		{"t": 0.6, "press": "research_tactician"},
+		{"t": 0.7, "release": "research_tactician"}
+	],
+	"pass_criteria": {
+		"champion_alive": true,
+		"research_unlocked_has": "berserker",
+		"research_points_gte": 10,
+		"champion_damage_eq": 21.6
+	}
+}
