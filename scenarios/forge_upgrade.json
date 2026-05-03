@@ -1,0 +1,25 @@
+{
+	"name": "forge_upgrade",
+	"description": "Forge prefers upgrade over craft when stockpile allows. Seed Inventory=[rusty_axe, rusty_axe] + ore=5. Place Forge on Worker1's spawn. Worker arrives ~1s, first cycle (~t=7) sees 2 rusty_axes + 5 ore → upgrade path: spend 2 rusty + 3 ore, push 1 iron_axe. Final ore=2, inventory=[iron_axe].",
+	"seed": 2222,
+	"max_duration_s": 9,
+	"champion": {
+		"max_hp": 100,
+		"damage": 14,
+		"move_speed": 5.0
+	},
+	"raiders": [],
+	"inputs": [
+		{"t": 0.1, "call": "/root/Inventory.add", "args": ["rusty_axe"]},
+		{"t": 0.15, "call": "/root/Inventory.add", "args": ["rusty_axe"]},
+		{"t": 0.2, "call": "/root/Economy.set", "args": ["ore", 5]},
+		{"t": 0.3, "call": "BuildController.place_at_xy", "args": [-5, -4, 4], "note": "Forge"}
+	],
+	"pass_criteria": {
+		"champion_alive": true,
+		"workers_at_rooms_eq": 1,
+		"ore_eq": 2,
+		"inventory_count_eq": 1,
+		"inventory_has": "iron_axe"
+	}
+}

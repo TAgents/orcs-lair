@@ -40,6 +40,12 @@ const FORGE_ORE_COST: int = 1
 # single Forge stocks Inventory with both tier-0 weapon and armor over
 # time without needing extra config.
 const FORGE_OUTPUTS: Array[String] = ["rusty_axe", "leather_jerkin"]
+# Forge upgrade path: spend 2 of a tier-0 item + UPGRADE_ORE_COST ore →
+# 1 tier-1 item via Equipment.upgrade_target. The Forge prefers upgrades
+# over fresh crafts when the stockpile allows — closes the gap where
+# starter gear would pile up forever.
+const FORGE_UPGRADE_INPUT_COUNT: int = 2
+const FORGE_UPGRADE_ORE_COST: int = 3
 
 @export var room_type: int = 0
 @export var footprint: Vector2i = Vector2i(2, 2)
@@ -203,20 +209,54 @@ func _class_multiplier() -> float:
 	return CLASS_BONUS_MULT
 
 func _step_forge(delta: float) -> void:
-	# Smith only progresses when the lair has ore to feed in. When progress
-	# fills the bar, consume one ore unit and push an item into Inventory,
-	# alternating weapon/armor so a solo Forge eventually produces both.
-	if Economy.ore < FORGE_ORE_COST:
+	# Smith progresses whenever there's *something* to do — either a
+	# fresh craft (ore ≥ 1) or a stockpile upgrade. Upgrade is preferred
+	# when ≥2 of any tier-0 item are available AND ore ≥ UPGRADE_ORE_COST,
+	# turning the Inventory sink on as soon as tier-0 gear piles up.
+	var can_upgrade: bool = _find_upgrade_input() != "" and Economy.ore >= FORGE_UPGRADE_ORE_COST
+	var can_craft: bool = Economy.ore >= FORGE_ORE_COST
+	if not can_upgrade and not can_craft:
 		_forge_progress = 0.0
 		return
 	_forge_progress += delta
 	if _forge_progress < FORGE_CRAFT_TIME:
 		return
 	_forge_progress -= FORGE_CRAFT_TIME
+	if can_upgrade:
+		_do_forge_upgrade()
+	else:
+		_do_forge_craft()
+
+func _do_forge_craft() -> void:
 	Economy.ore = Economy.ore - FORGE_ORE_COST
 	var idx: int = _forge_outputs_made % FORGE_OUTPUTS.size()
 	Inventory.add(FORGE_OUTPUTS[idx])
 	_forge_outputs_made += 1
+
+# Returns the first item id in Inventory that has ≥ FORGE_UPGRADE_INPUT_COUNT
+# duplicates AND a non-empty upgrade_target, or "" if none.
+func _find_upgrade_input() -> String:
+	var counts: Dictionary = {}
+	for it in Inventory.items():
+		var s: String = String(it)
+		counts[s] = int(counts.get(s, 0)) + 1
+	for item_id in counts:
+		if int(counts[item_id]) >= FORGE_UPGRADE_INPUT_COUNT and Equipment.upgrade_target(item_id) != "":
+			return item_id
+	return ""
+
+func _do_forge_upgrade() -> void:
+	var src_id: String = _find_upgrade_input()
+	if src_id == "":
+		return
+	var target: String = Equipment.upgrade_target(src_id)
+	if target == "":
+		return
+	Economy.ore = Economy.ore - FORGE_UPGRADE_ORE_COST
+	for i in FORGE_UPGRADE_INPUT_COUNT:
+		Inventory.remove(src_id)
+	Inventory.add(target)
+	Toasts.show("Forge upgraded %s → %s" % [src_id, target], Toasts.COLOR_GOOD)
 
 func _regen_nearby(delta: float) -> void:
 	var amount: float = SLEEPING_HP_PER_SEC * delta
