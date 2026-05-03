@@ -48,6 +48,18 @@ static func upgrade(item_id: String, raid_count: int) -> String:
 	var idx: int = clamp(raid_count, 0, ladder.size() - 1)
 	return String(ladder[idx])
 
+# Forge upgrade target: the immediate next-tier id, or "" if none. Used by
+# PlacedRoom Forge to decide whether to "upgrade two duplicates" instead
+# of "craft one new". Walks the ladder forward by one step.
+static func upgrade_target(item_id: String) -> String:
+	if not _UPGRADE_LADDER.has(item_id):
+		return ""
+	var ladder: Array = _UPGRADE_LADDER[item_id]
+	for next in ladder:
+		if String(next) != item_id:
+			return String(next)
+	return ""
+
 static func _make(id: String, n: String, s: int, dmg: float, hp: float) -> Equipment:
 	var e := Equipment.new()
 	e.item_id = id
