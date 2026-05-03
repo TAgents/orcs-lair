@@ -67,6 +67,21 @@ func _die() -> void:
 		Economy.add_gold(float(gold_drop))
 	if drop_item_id != "":
 		Inventory.add(drop_item_id)
+	# Jail capture: each placed Jail room gives a +25% chance of being
+	# captured (capped at 75%). Death animation/signals still play — only
+	# the lair-side bookkeeping changes (Lair.captives bumps, ransomed
+	# later by a Jailer in PlacedRoom._step_jail).
+	var jail_count: int = 0
+	for r in get_tree().get_nodes_in_group("placed_rooms"):
+		if r is PlacedRoom and r.room_type == Room.Type.JAIL:
+			jail_count += 1
+	if jail_count > 0:
+		var chance: float = clampf(float(jail_count) * 0.25, 0.0, 0.75)
+		if randf() < chance:
+			var lair: Node = get_tree().root.get_node_or_null("Lair")
+			if lair != null and "captives" in lair:
+				lair.captives += 1
+				Toasts.show("Raider captured", Toasts.COLOR_INFO)
 	super._die()
 
 func _on_hitbox_body_entered(body: Node) -> void:

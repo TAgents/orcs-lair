@@ -25,7 +25,7 @@ extends Node
 # Backward-compatible: v1..v5 saves load cleanly. Missing fields default to
 # zero across the board.
 
-const SAVE_FORMAT_VERSION: int = 12
+const SAVE_FORMAT_VERSION: int = 13
 
 signal saved(path: String)
 signal loaded(path: String)
@@ -90,8 +90,11 @@ func _gather_state() -> Dictionary:
 			})
 	var lair: Node = get_tree().root.get_node_or_null("Lair")
 	var raids_completed: int = 0
+	var captives: int = 0
 	if lair != null and "raids_completed" in lair:
 		raids_completed = int(lair.raids_completed)
+	if lair != null and "captives" in lair:
+		captives = int(lair.captives)
 	return {
 		"version": SAVE_FORMAT_VERSION,
 		"gold": Economy.gold,
@@ -99,6 +102,7 @@ func _gather_state() -> Dictionary:
 		"food": Economy.food,
 		"inventory": Inventory.items(),
 		"raids_completed": raids_completed,
+		"captives": captives,
 		"day_index": Clock.day_index,
 		"time_of_day": Clock.time_of_day,
 		"research_points": Research.points,
@@ -148,6 +152,8 @@ func _apply_state(data: Dictionary) -> void:
 	var lair: Node = get_tree().root.get_node_or_null("Lair")
 	if lair != null and "raids_completed" in lair:
 		lair.raids_completed = int(data.get("raids_completed", 0))
+	if lair != null and "captives" in lair:
+		lair.captives = int(data.get("captives", 0))
 	if bc != null:
 		for r in data.get("rooms", []):
 			bc.place_at_xy(int(r["x"]), int(r["z"]), int(r["type"]), false)

@@ -3,7 +3,7 @@ class_name Room
 
 # Pure data describing a room type. Visuals come from build_controller's palette.
 
-enum Type { SLEEPING, TRAINING, TREASURY, MINE, FORGE, KITCHEN, LIBRARY }
+enum Type { SLEEPING, TRAINING, TREASURY, MINE, FORGE, KITCHEN, LIBRARY, JAIL }
 
 @export var type: Type = Type.SLEEPING
 @export var footprint: Vector2i = Vector2i(2, 2)
@@ -43,4 +43,8 @@ static func make(t: Type) -> Room:
 			r.display_name = "Library"
 			r.color = Color(0.55, 0.30, 0.85)
 			r.cost = 45
+		Type.JAIL:
+			r.display_name = "Jail"
+			r.color = Color(0.45, 0.20, 0.20)
+			r.cost = 35
 	return r

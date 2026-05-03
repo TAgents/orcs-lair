@@ -18,6 +18,9 @@ const SLEEPING_HEAL_RADIUS: float = 4.5
 const MINE_ORE_PER_SEC: float = 0.5
 const KITCHEN_FOOD_PER_SEC: float = 0.5
 const LIBRARY_RESEARCH_PER_SEC: float = 0.3
+# Jail: Jailer worker ransoms one captive every N seconds for +M gold.
+const JAIL_PROCESS_TIME: float = 5.0
+const JAIL_GOLD_PER_CAPTIVE: int = 25
 # Per-room class match: when the assigned worker has the matching class,
 # room output / craft speed is multiplied by this. Trainer/Banker/Miner/
 # Smith/Cook are awarded by Worker._advance_class_progress.
@@ -29,6 +32,7 @@ const CLASS_FOR_ROOM_TYPE: Dictionary = {
 	Room.Type.FORGE: "Smith",
 	Room.Type.KITCHEN: "Cook",
 	Room.Type.LIBRARY: "Scholar",
+	Room.Type.JAIL: "Jailer",
 }
 const FORGE_CRAFT_TIME: float = 6.0
 const FORGE_ORE_COST: int = 1
@@ -45,6 +49,7 @@ var _assigned_worker: Node = null
 var _placed_at_msec: int = 0
 var _forge_progress: float = 0.0
 var _forge_outputs_made: int = 0
+var _jail_progress: float = 0.0
 var _status_label: Label3D = null
 
 signal worker_assigned(worker: Node)
@@ -164,6 +169,24 @@ func _process(delta: float) -> void:
 		Economy.add_food(KITCHEN_FOOD_PER_SEC * delta * mult)
 	elif room_type == Room.Type.LIBRARY:
 		Research.add_points(LIBRARY_RESEARCH_PER_SEC * delta * mult)
+	elif room_type == Room.Type.JAIL:
+		_step_jail(delta * mult)
+
+func _step_jail(delta: float) -> void:
+	var lair: Node = get_tree().root.get_node_or_null("Lair")
+	if lair == null or not "captives" in lair:
+		_jail_progress = 0.0
+		return
+	if lair.captives <= 0:
+		_jail_progress = 0.0
+		return
+	_jail_progress += delta
+	if _jail_progress < JAIL_PROCESS_TIME:
+		return
+	_jail_progress -= JAIL_PROCESS_TIME
+	lair.captives -= 1
+	Economy.add_gold(float(JAIL_GOLD_PER_CAPTIVE))
+	Toasts.show("Captive ransomed (+%d g)" % JAIL_GOLD_PER_CAPTIVE, Toasts.COLOR_GOOD)
 
 # 1.5× when the assigned worker's class matches this room's type, 1.0
 # otherwise. Sleeping rooms have no class bonus (no class is awarded for
