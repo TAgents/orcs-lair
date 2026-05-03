@@ -121,6 +121,62 @@ offset_bottom = 200.0
 mouse_filter = 2
 alignment = 1
 
+[node name="PauseMenu" type="ColorRect" parent="Root"]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.7)
+
+[node name="MenuTitle" type="Label" parent="Root/PauseMenu"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -180.0
+offset_right = 200.0
+offset_bottom = -130.0
+text = "PAUSED"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 36
+theme_override_colors/font_color = Color(1, 0.95, 0.7, 1)
+
+[node name="ResumeBtn" type="Button" parent="Root/PauseMenu"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -120.0
+offset_top = -60.0
+offset_right = 120.0
+offset_bottom = -20.0
+text = "Resume (Esc)"
+theme_override_font_sizes/font_size = 18
+
+[node name="RestartBtn" type="Button" parent="Root/PauseMenu"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -120.0
+offset_top = -10.0
+offset_right = 120.0
+offset_bottom = 30.0
+text = "Restart (R)"
+theme_override_font_sizes/font_size = 18
+
+[node name="QuitBtn" type="Button" parent="Root/PauseMenu"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -120.0
+offset_top = 40.0
+offset_right = 120.0
+offset_bottom = 80.0
+text = "Quit"
+theme_override_font_sizes/font_size = 18
+
 [node name="HelpOverlay" type="ColorRect" parent="Root"]
 visible = false
 anchor_right = 1.0

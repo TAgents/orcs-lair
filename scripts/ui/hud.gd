@@ -16,6 +16,10 @@ extends CanvasLayer
 @onready var help_overlay: ColorRect = $Root/HelpOverlay
 @onready var help_label: Label = $Root/HelpOverlay/HelpLabel
 @onready var research_label: Label = $Root/ResearchLabel
+@onready var pause_menu: ColorRect = $Root/PauseMenu
+@onready var btn_resume: Button = $Root/PauseMenu/ResumeBtn
+@onready var btn_restart: Button = $Root/PauseMenu/RestartBtn
+@onready var btn_quit: Button = $Root/PauseMenu/QuitBtn
 
 var _champion: Champion = null
 var _build_controller: BuildController = null
@@ -50,6 +54,10 @@ func _ready() -> void:
 	if not _help_seen():
 		help_overlay.visible = true
 		_mark_help_seen()
+	# Pause menu wiring.
+	btn_resume.pressed.connect(_pause_resume)
+	btn_restart.pressed.connect(_pause_restart)
+	btn_quit.pressed.connect(_pause_quit)
 	# Hooks that fire the most useful toasts. Keep this set tight — too
 	# many is noise. Worker class_earned is wired per-worker on _ready
 	# below; new workers spawned later (none today, but future) won't
@@ -312,6 +320,27 @@ const _HELP_FLAG_PATH: String = "user://help_seen.flag"
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("help_toggle"):
 		help_overlay.visible = not help_overlay.visible
+	elif event.is_action_pressed("pause_menu") and Game.mode != Game.Mode.BUILDING:
+		# Esc in BUILD is reserved for build_cancel (handled by lair.gd);
+		# elsewhere it toggles the pause menu. Open closes BUT also
+		# unpauses the tree.
+		_toggle_pause_menu()
+
+func _toggle_pause_menu() -> void:
+	pause_menu.visible = not pause_menu.visible
+	get_tree().paused = pause_menu.visible
+
+func _pause_resume() -> void:
+	pause_menu.visible = false
+	get_tree().paused = false
+
+func _pause_restart() -> void:
+	pause_menu.visible = false
+	get_tree().paused = false
+	get_tree().reload_current_scene()
+
+func _pause_quit() -> void:
+	get_tree().quit()
 
 func _help_seen() -> bool:
 	return FileAccess.file_exists(_HELP_FLAG_PATH)
