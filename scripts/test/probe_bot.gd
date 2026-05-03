@@ -12,6 +12,12 @@ var _held: Dictionary = {}
 
 signal finished
 
+func _ready() -> void:
+	# ProbeBot drives scripted inputs even when scenarios pause the
+	# tree (e.g. via Game.set_mode(BUILDING)). Without this the input
+	# timeline halts the moment build mode is toggled.
+	process_mode = Node.PROCESS_MODE_ALWAYS
+
 func load_sequence(seq: Array) -> void:
 	# Sort by t to allow scenarios to be authored unordered.
 	var copy := seq.duplicate(true)

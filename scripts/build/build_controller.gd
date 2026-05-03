@@ -33,6 +33,10 @@ signal room_demolished(grid_origin: Vector2i, room_type: int, refund: int)
 signal type_changed(new_type: int)
 
 func _ready() -> void:
+	# BuildController must keep ticking when the scene tree is paused
+	# (entering BUILDING mode pauses everything else). Without this the
+	# ghost preview and place/demolish input would freeze too.
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	rooms_root = Node3D.new()
 	rooms_root.name = "PlacedRooms"
 	add_child(rooms_root)

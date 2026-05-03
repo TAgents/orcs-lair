@@ -44,6 +44,9 @@ func setup(scenario_data: Dictionary, out_path: String, lair_node: Node3D) -> vo
 	output_path = out_path
 	_lair = lair_node
 	max_duration_s = float(scenario.get("max_duration_s", 60.0))
+	# Scenarios that toggle BUILDING mid-test would otherwise freeze the
+	# runner alongside the rest of the tree (build-mode pause).
+	process_mode = Node.PROCESS_MODE_ALWAYS
 
 	_apply_seed()
 	Economy.reset()
