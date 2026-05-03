@@ -23,6 +23,9 @@ var _raid_complete: bool = false
 var _lair: Node = null
 
 func _ready() -> void:
+	# HUD must keep updating during the build-mode tree pause so the
+	# resource bar / build legend / toasts / day label stay live.
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	Game.mode_changed.connect(_on_mode_changed)
 	Game.game_over.connect(_on_game_over)
 	Economy.gold_changed.connect(_on_gold_changed)

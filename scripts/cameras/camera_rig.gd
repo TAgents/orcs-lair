@@ -17,6 +17,9 @@ var _tween: Tween = null
 var _follow_active: bool = false
 
 func _ready() -> void:
+	# Stays responsive during build-mode tree pause — otherwise the
+	# camera tween into LAIR view would freeze mid-flight.
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	Game.mode_changed.connect(_on_mode_changed)
 	_apply_lair_view(true)
 

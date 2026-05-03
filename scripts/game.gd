@@ -18,6 +18,14 @@ func set_mode(new_mode: Mode, target: Node = null) -> void:
 		return
 	mode = new_mode
 	possessed = target if new_mode == Mode.POSSESSING else null
+	# Build mode is a strategic pause: stop the day clock, raid grace
+	# countdowns, food consumption, and room production so the player
+	# can plan without the world ticking. HUD / BuildController /
+	# CameraRig opt into PROCESS_MODE_ALWAYS so the build UI keeps
+	# responding while the rest of the scene tree freezes.
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree != null:
+		tree.paused = (new_mode == Mode.BUILDING)
 	mode_changed.emit(mode)
 
 func toggle_build() -> void:
