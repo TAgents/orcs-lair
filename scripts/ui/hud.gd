@@ -20,6 +20,11 @@ extends CanvasLayer
 @onready var btn_resume: Button = $Root/PauseMenu/ResumeBtn
 @onready var btn_restart: Button = $Root/PauseMenu/RestartBtn
 @onready var btn_quit: Button = $Root/PauseMenu/QuitBtn
+@onready var btn_settings: Button = $Root/PauseMenu/SettingsBtn
+@onready var settings_panel: ColorRect = $Root/SettingsPanel
+@onready var vol_slider: HSlider = $Root/SettingsPanel/VolSlider
+@onready var fullscreen_check: CheckBox = $Root/SettingsPanel/FullscreenCheck
+@onready var btn_settings_back: Button = $Root/SettingsPanel/BackBtn
 
 var _champion: Champion = null
 var _build_controller: BuildController = null
@@ -58,6 +63,11 @@ func _ready() -> void:
 	btn_resume.pressed.connect(_pause_resume)
 	btn_restart.pressed.connect(_pause_restart)
 	btn_quit.pressed.connect(_pause_quit)
+	btn_settings.pressed.connect(_open_settings)
+	btn_settings_back.pressed.connect(_close_settings)
+	vol_slider.value_changed.connect(_on_volume_changed)
+	fullscreen_check.toggled.connect(_on_fullscreen_toggled)
+	_load_settings()
 	# Hooks that fire the most useful toasts. Keep this set tight — too
 	# many is noise. Worker class_earned is wired per-worker on _ready
 	# below; new workers spawned later (none today, but future) won't
@@ -342,6 +352,65 @@ func _pause_restart() -> void:
 
 func _pause_quit() -> void:
 	get_tree().quit()
+
+# --- Settings panel ----------------------------------------------------------
+
+const _SETTINGS_PATH: String = "user://settings.json"
+
+func _open_settings() -> void:
+	pause_menu.visible = false
+	settings_panel.visible = true
+
+func _close_settings() -> void:
+	settings_panel.visible = false
+	pause_menu.visible = true
+
+func _on_volume_changed(value: float) -> void:
+	_apply_volume(value)
+	_save_settings()
+
+func _on_fullscreen_toggled(on: bool) -> void:
+	_apply_fullscreen(on)
+	_save_settings()
+
+func _apply_volume(linear: float) -> void:
+	# Linear 0..1 → dB (silence at 0). AudioServer's Master bus is what
+	# every AudioStreamPlayer eventually routes through.
+	var db: float = -80.0 if linear <= 0.001 else linear_to_db(linear)
+	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Master"), db)
+
+func _apply_fullscreen(on: bool) -> void:
+	DisplayServer.window_set_mode(
+		DisplayServer.WINDOW_MODE_FULLSCREEN if on else DisplayServer.WINDOW_MODE_WINDOWED
+	)
+
+func _save_settings() -> void:
+	var data: Dictionary = {
+		"master_volume": vol_slider.value,
+		"fullscreen": fullscreen_check.button_pressed,
+	}
+	var f := FileAccess.open(_SETTINGS_PATH, FileAccess.WRITE)
+	if f != null:
+		f.store_string(JSON.stringify(data))
+		f.close()
+
+func _load_settings() -> void:
+	if not FileAccess.file_exists(_SETTINGS_PATH):
+		_apply_volume(vol_slider.value)
+		return
+	var f := FileAccess.open(_SETTINGS_PATH, FileAccess.READ)
+	if f == null:
+		return
+	var raw: String = f.get_as_text()
+	f.close()
+	var parsed: Variant = JSON.parse_string(raw)
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return
+	var d: Dictionary = parsed as Dictionary
+	vol_slider.value = float(d.get("master_volume", 1.0))
+	fullscreen_check.button_pressed = bool(d.get("fullscreen", false))
+	_apply_volume(vol_slider.value)
+	_apply_fullscreen(fullscreen_check.button_pressed)
 
 func _help_seen() -> bool:
 	return FileAccess.file_exists(_HELP_FLAG_PATH)

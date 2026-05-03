@@ -165,7 +165,7 @@ offset_bottom = 30.0
 text = "Restart (R)"
 theme_override_font_sizes/font_size = 18
 
-[node name="QuitBtn" type="Button" parent="Root/PauseMenu"]
+[node name="SettingsBtn" type="Button" parent="Root/PauseMenu"]
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -174,7 +174,88 @@ offset_left = -120.0
 offset_top = 40.0
 offset_right = 120.0
 offset_bottom = 80.0
+text = "Settings"
+theme_override_font_sizes/font_size = 18
+
+[node name="QuitBtn" type="Button" parent="Root/PauseMenu"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -120.0
+offset_top = 90.0
+offset_right = 120.0
+offset_bottom = 130.0
 text = "Quit"
+theme_override_font_sizes/font_size = 18
+
+[node name="SettingsPanel" type="ColorRect" parent="Root"]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.85)
+
+[node name="STitle" type="Label" parent="Root/SettingsPanel"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -180.0
+offset_right = 200.0
+offset_bottom = -130.0
+text = "SETTINGS"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 32
+theme_override_colors/font_color = Color(1, 0.95, 0.7, 1)
+
+[node name="VolLabel" type="Label" parent="Root/SettingsPanel"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -80.0
+offset_right = 200.0
+offset_bottom = -50.0
+text = "Master Volume"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 18
+
+[node name="VolSlider" type="HSlider" parent="Root/SettingsPanel"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -50.0
+offset_right = 200.0
+offset_bottom = -30.0
+max_value = 1.0
+step = 0.05
+value = 1.0
+
+[node name="FullscreenCheck" type="CheckBox" parent="Root/SettingsPanel"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -120.0
+offset_top = 10.0
+offset_right = 120.0
+offset_bottom = 50.0
+text = "Fullscreen"
+
+[node name="BackBtn" type="Button" parent="Root/SettingsPanel"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -120.0
+offset_top = 80.0
+offset_right = 120.0
+offset_bottom = 120.0
+text = "Back"
 theme_override_font_sizes/font_size = 18
 
 [node name="HelpOverlay" type="ColorRect" parent="Root"]
