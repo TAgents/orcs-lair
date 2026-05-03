@@ -299,6 +299,12 @@ func _evaluate() -> Dictionary:
 		if _game_over_state != want:
 			ok = false
 			reasons.append("game_over_eq want=%s got=%s" % [want, _game_over_state])
+	if crit.has("captives_eq"):
+		var want: int = int(crit["captives_eq"])
+		var got: int = int(_lair.captives) if _lair != null and "captives" in _lair else 0
+		if got != want:
+			ok = false
+			reasons.append("captives_eq want=%d got=%d" % [want, got])
 	if crit.has("research_points_gte"):
 		var want: int = int(crit["research_points_gte"])
 		if Research.points < want:

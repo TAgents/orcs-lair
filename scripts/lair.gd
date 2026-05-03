@@ -28,6 +28,11 @@ var _raid_complete_pending_return: bool = false
 # raids spawn guards with stats scaled by the count, raising the difficulty
 # curve over the course of a campaign.
 var raids_completed: int = 0
+
+# Persistent (save format v13+). Captured raiders pending ransom in a Jail.
+# Raider._die rolls capture-on-kill based on Jail count; PlacedRoom JAIL's
+# Jailer worker converts captives → gold over time.
+var captives: int = 0
 const RAID_GUARD_HP_PER_RAID: float = 10.0
 const RAID_GUARD_DAMAGE_PER_RAID: float = 1.0
 

@@ -1,0 +1,23 @@
+{
+	"name": "jail_ransom",
+	"description": "Jail processes captives → ransom gold. Seed Lair.captives=3, place a Jail (type 7) on Worker1's spawn. Worker arrives ~1s, processes 1 captive every 5s. By t=12s: 2 captives processed → captives=1, gold=100+50=150.",
+	"seed": 2121,
+	"max_duration_s": 12,
+	"champion": {
+		"max_hp": 100,
+		"damage": 14,
+		"move_speed": 5.0
+	},
+	"raiders": [],
+	"inputs": [
+		{"t": 0.1, "call": "/root/Lair.set", "args": ["captives", 3]},
+		{"t": 0.3, "call": "BuildController.place_at_xy", "args": [-5, -4, 7], "note": "Jail (35g) at Worker1 spawn"}
+	],
+	"pass_criteria": {
+		"champion_alive": true,
+		"rooms_placed_eq": 1,
+		"workers_at_rooms_eq": 1,
+		"captives_eq": 1,
+		"gold_eq": 115
+	}
+}
