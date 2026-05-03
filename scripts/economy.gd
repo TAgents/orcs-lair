@@ -6,7 +6,7 @@ extends Node
 
 const STARTING_GOLD: int = 100
 const STARTING_ORE: int = 0
-const STARTING_FOOD: int = 50
+const STARTING_FOOD: int = 80
 
 signal gold_changed(new_amount: int)
 signal ore_changed(new_amount: int)
