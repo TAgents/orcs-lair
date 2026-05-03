@@ -115,6 +115,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		_spend_attr_on_named("vit")
 	elif event.is_action_pressed("attr_agi"):
 		_spend_attr_on_named("agi")
+	elif event.is_action_pressed("research_berserker"):
+		Research.unlock("berserker")
+	elif event.is_action_pressed("research_tactician"):
+		Research.unlock("tactician")
+	elif event.is_action_pressed("research_survivor"):
+		Research.unlock("survivor")
 	elif event.is_action_pressed("quick_save"):
 		var ok := SaveSystem.save_to(QUICKSAVE_PATH)
 		print("[lair] quicksave → %s : %s" % [QUICKSAVE_PATH, "OK" if ok else "FAILED"])

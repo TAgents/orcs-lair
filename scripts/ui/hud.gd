@@ -15,6 +15,7 @@ extends CanvasLayer
 @onready var toast_root: VBoxContainer = $Root/ToastRoot
 @onready var help_overlay: ColorRect = $Root/HelpOverlay
 @onready var help_label: Label = $Root/HelpOverlay/HelpLabel
+@onready var research_label: Label = $Root/ResearchLabel
 
 var _champion: Champion = null
 var _build_controller: BuildController = null
@@ -52,6 +53,8 @@ func _ready() -> void:
 	# auto-fire toasts unless someone calls Toasts.show.
 	if Research != null:
 		Research.branch_unlocked.connect(_on_research_branch_unlocked)
+		Research.points_changed.connect(_on_research_points_changed)
+	_refresh_research_label()
 	if Economy != null:
 		Economy.food_changed.connect(_on_food_changed_for_toast)
 	for w in get_tree().get_nodes_in_group("workers"):
@@ -264,6 +267,25 @@ func _on_toast_requested(text: String, color: Color) -> void:
 
 func _on_research_branch_unlocked(branch: String) -> void:
 	Toasts.show("Unlocked %s branch" % branch.capitalize(), Toasts.COLOR_GOOD)
+	_refresh_research_label()
+
+func _on_research_points_changed(_amount: int) -> void:
+	_refresh_research_label()
+
+func _refresh_research_label() -> void:
+	if research_label == null:
+		return
+	var any_unlocked: bool = Research.unlocked.size() > 0
+	if Research.points < Research.UNLOCK_COST and not any_unlocked:
+		research_label.visible = false
+		return
+	research_label.visible = true
+	var b: String = "✓" if Research.unlocked.has("berserker") else "[F2]"
+	var t: String = "✓" if Research.unlocked.has("tactician") else "[F3]"
+	var s: String = "✓" if Research.unlocked.has("survivor") else "[F4]"
+	research_label.text = "RES %d/%d  %s Bers  %s Tact  %s Surv" % [
+		Research.points, Research.UNLOCK_COST, b, t, s,
+	]
 
 func _on_worker_class_earned(w: Worker, new_class: String) -> void:
 	Toasts.show("%s became a %s" % [String(w.name), new_class], Toasts.COLOR_GOOD)
