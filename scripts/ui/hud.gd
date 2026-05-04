@@ -30,6 +30,9 @@ var _champion: Champion = null
 var _build_controller: BuildController = null
 var _raid_complete: bool = false
 var _lair: Node = null
+var _wave_director: Node = null
+var _wave_idx: int = 0
+var _wave_total: int = 0
 
 func _ready() -> void:
 	# HUD must keep updating during the build-mode tree pause so the
@@ -122,6 +125,9 @@ func _process(_delta: float) -> void:
 		else:
 			raid_label.visible = false
 
+	# Wave countdown — live during the WAITING_TO_SPAWN grace window.
+	_refresh_wave_label()
+
 func _format_skills(c: Champion) -> String:
 	return "%s  %s  %s  %s" % [
 		_skill_cell("J Attack", c.attack_cooldown_remaining()),
@@ -147,6 +153,7 @@ func _find_wave_director() -> void:
 	var wd: Node = lair.get_node_or_null("WaveDirector")
 	if wd == null:
 		return
+	_wave_director = wd
 	wd.wave_started.connect(_on_wave_started)
 
 func _find_lair_raid_signals() -> void:
@@ -192,7 +199,21 @@ func _on_raid_completed() -> void:
 
 func _on_wave_started(wave_idx: int, total: int) -> void:
 	wave_label.visible = true
-	wave_label.text = "Wave %d/%d" % [wave_idx + 1, total]
+	_wave_idx = wave_idx
+	_wave_total = total
+	_refresh_wave_label()
+
+# Polled in _process so the countdown to the next wave updates live
+# during the WAITING_TO_SPAWN grace window.
+func _refresh_wave_label() -> void:
+	if not wave_label.visible:
+		return
+	var base: String = "Wave %d/%d" % [_wave_idx + 1, _wave_total]
+	if _wave_director != null and _wave_director.has_method("seconds_until_next_wave"):
+		var s: float = _wave_director.seconds_until_next_wave()
+		if s >= 0.0:
+			base += " — next in %ds" % int(ceil(s))
+	wave_label.text = base
 
 func _find_build_controller() -> void:
 	var bc: Node = get_tree().get_first_node_in_group("build_controllers")
