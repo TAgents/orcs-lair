@@ -38,6 +38,10 @@ func _ready() -> void:
 	# HUD must keep updating during the build-mode tree pause so the
 	# resource bar / build legend / toasts / day label stay live.
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	# Apply the cozy-sim fantasy theme to the root Control. Theme cascades
+	# to every descendant Button/Label/ProgressBar/HSlider/CheckBox so we
+	# don't need to walk the tree.
+	($Root as Control).theme = HUDTheme.build()
 	Game.mode_changed.connect(_on_mode_changed)
 	Game.game_over.connect(_on_game_over)
 	Economy.gold_changed.connect(_on_gold_changed)
