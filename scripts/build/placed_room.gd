@@ -57,6 +57,30 @@ var _forge_progress: float = 0.0
 var _forge_outputs_made: int = 0
 var _jail_progress: float = 0.0
 var _status_label: Label3D = null
+var _room_light: OmniLight3D = null
+# Hot-room flicker drives a sin+random jitter on _room_light energy
+# so forge / kitchen feel like they have a living fire inside.
+var _light_base_energy: float = 0.0
+var _light_flicker: bool = false
+var _light_t: float = 0.0
+var _light_phase: float = 0.0
+var _light_jitter_target: float = 0.0
+var _light_next_jitter: float = 0.0
+
+# Per-room point-light specs. Each entry: light_color, energy, range,
+# flicker. Colors are warmer/colder than the diffuse room tint to match
+# the "what kind of place is this?" reading rather than just echoing the
+# build-mode swatch.
+const _ROOM_LIGHT_SPECS: Dictionary = {
+	Room.Type.SLEEPING: {"color": Color(0.55, 0.70, 1.00), "energy": 1.4, "range": 6.0, "flicker": false},
+	Room.Type.TRAINING: {"color": Color(0.95, 0.85, 0.70), "energy": 1.8, "range": 7.0, "flicker": false},
+	Room.Type.TREASURY: {"color": Color(1.00, 0.85, 0.45), "energy": 2.2, "range": 7.0, "flicker": false},
+	Room.Type.MINE:     {"color": Color(0.95, 0.75, 0.50), "energy": 1.4, "range": 6.0, "flicker": false},
+	Room.Type.FORGE:    {"color": Color(1.00, 0.45, 0.15), "energy": 3.2, "range": 9.0, "flicker": true},
+	Room.Type.KITCHEN:  {"color": Color(1.00, 0.78, 0.45), "energy": 2.4, "range": 7.5, "flicker": true},
+	Room.Type.LIBRARY:  {"color": Color(0.70, 0.85, 1.00), "energy": 1.8, "range": 7.0, "flicker": false},
+	Room.Type.JAIL:     {"color": Color(0.95, 0.40, 0.30), "energy": 1.2, "range": 5.0, "flicker": false},
+}
 
 signal worker_assigned(worker: Node)
 signal worker_unassigned(worker: Node)
@@ -65,6 +89,7 @@ func _ready() -> void:
 	add_to_group("placed_rooms")
 	_placed_at_msec = Time.get_ticks_msec()
 	_setup_status_label()
+	_setup_room_light()
 
 # Status billboard floats above the room and updates each frame to show
 # what's running, who's working it, and how full the bar is. Skipped in
@@ -160,6 +185,7 @@ func _process(delta: float) -> void:
 	# Status label refreshes every frame so production rate / forge bar /
 	# class star track changes live. Cheap — single Label3D per room.
 	_refresh_status_label()
+	_tick_light_flicker(delta)
 	if not is_active():
 		return
 	var mult: float = _class_multiplier()
@@ -267,3 +293,36 @@ func _regen_nearby(delta: float) -> void:
 			var dz: float = o.global_position.z - center.z
 			if dx * dx + dz * dz <= SLEEPING_HEAL_RADIUS * SLEEPING_HEAL_RADIUS:
 				o.heal(amount)
+
+# Per-room point light. Skipped headless. Position is room-local center
+# at chest height (1.4m) so the light spills onto walls + workers without
+# being a flat overhead. Flicker is opt-in per spec — only forge/kitchen
+# get the live-fire feel; the rest are steady (lamp / bank / library).
+func _setup_room_light() -> void:
+	if DisplayServer.get_name() == "headless":
+		return
+	if not _ROOM_LIGHT_SPECS.has(room_type):
+		return
+	var spec: Dictionary = _ROOM_LIGHT_SPECS[room_type]
+	_room_light = OmniLight3D.new()
+	_room_light.light_color = spec["color"]
+	_light_base_energy = float(spec["energy"])
+	_room_light.light_energy = _light_base_energy
+	_room_light.omni_range = float(spec["range"])
+	_room_light.omni_attenuation = 1.4
+	_room_light.shadow_enabled = false  # skip shadow cost — point lights stack fast
+	_room_light.position = Vector3(0, 1.4, 0)
+	add_child(_room_light)
+	_light_flicker = bool(spec.get("flicker", false))
+	_light_phase = randf() * TAU
+
+func _tick_light_flicker(delta: float) -> void:
+	if _room_light == null or not _light_flicker:
+		return
+	_light_t += delta
+	# Slow swell + fast jitter — same shape as torch.gd, slightly tamer.
+	var swell: float = sin(_light_t * 1.8 + _light_phase) * 0.18
+	if _light_t >= _light_next_jitter:
+		_light_jitter_target = randf_range(-0.25, 0.25)
+		_light_next_jitter = _light_t + 1.0 / 14.0
+	_room_light.light_energy = max(0.4, _light_base_energy + swell + _light_jitter_target)
