@@ -41,6 +41,7 @@ func _ready() -> void:
 	Clock.time_changed.connect(_on_time_changed)
 	Clock.day_changed.connect(_on_day_changed)
 	_on_time_changed(Clock.time_of_day)
+	_setup_atmosphere_particles()
 
 	if _maybe_run_scenario():
 		# Scenario mode: ScenarioRunner spawns/configures raiders.
@@ -437,3 +438,21 @@ func _load_scenario(path: String) -> Dictionary:
 	if typeof(parsed) != TYPE_DICTIONARY:
 		return {}
 	return parsed as Dictionary
+
+# Atmosphere particles: lair-wide dust motes + a smoke wisp on each
+# torch / firepit. Skipped headless. Cheap (single dust emitter, 5
+# small smokes); they're decorative-only so headless wouldn't see
+# them anyway and it'd just slow CI down.
+func _setup_atmosphere_particles() -> void:
+	if DisplayServer.get_name() == "headless":
+		return
+	var dust := AtmosphereParticles.dust_motes()
+	dust.position = Vector3(0, 2.5, 0)
+	add_child(dust)
+	for torch_name in ["TorchNW", "TorchNE", "TorchSW", "TorchSE"]:
+		var t: Node = get_node_or_null(torch_name)
+		if t != null:
+			t.add_child(AtmosphereParticles.torch_smoke(0.7))
+	var firepit: Node = get_node_or_null("FirePit")
+	if firepit != null:
+		firepit.add_child(AtmosphereParticles.torch_smoke(1.4))
