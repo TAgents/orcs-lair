@@ -61,6 +61,14 @@ func total_waves() -> int:
 func current_wave() -> int:
 	return _current_wave
 
+# Returns seconds until the next wave spawns, or -1.0 when not waiting
+# (mid-wave / completed / inactive). HUD reads this to render the
+# countdown next to the wave counter.
+func seconds_until_next_wave() -> float:
+	if _state != State.WAITING_TO_SPAWN:
+		return -1.0
+	return max(0.0, _grace_remaining)
+
 # Pure: returns the raider spec list for wave N (1-indexed) without spawning.
 # Each entry: {position, max_hp, damage, move_speed, gold_drop, is_boss}.
 func compute_wave_spec(wave_index: int) -> Array:
