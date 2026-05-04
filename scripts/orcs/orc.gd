@@ -21,6 +21,7 @@ var _vulnerable: bool = true
 # Wall-clock timestamp of the last take_damage hit. Initialised far in the
 # past so a freshly-spawned damaged unit can immediately start regenerating.
 var _last_damage_msec: int = -1000000
+var _hp_label: Label3D = null
 
 # AnimationPlayer of the swapped-in GLB model (Kenney Mini Dungeon ships
 # rigged characters with idle/walk/sprint/attack-melee-*/die/interact-*).
@@ -39,6 +40,7 @@ func take_damage(amount: float, _source: Node = null) -> void:
 	# friendly orc/civilian/champion gets hit (player threat).
 	var dmg_color: Color = Color(1, 0.9, 0.4) if faction == "raider" else Color(1, 0.4, 0.3)
 	DamageNumber.spawn_at(global_position + Vector3(0.0, 1.7, 0.0), actual, dmg_color, self)
+	_refresh_hp_label()
 	if hp <= 0.0:
 		_die()
 
@@ -46,6 +48,36 @@ func heal(amount: float) -> void:
 	if hp <= 0.0 or amount <= 0.0:
 		return
 	hp = min(max_hp, hp + amount)
+	_refresh_hp_label()
+
+# Floating HP label — billboard, visible only when damaged. Created lazily
+# on first take_damage so unscathed orcs stay visually clean. Skipped in
+# headless via the existing DisplayServer guard pattern.
+func _refresh_hp_label() -> void:
+	if DisplayServer.get_name() == "headless":
+		return
+	if hp >= max_hp - 0.01:
+		if _hp_label != null:
+			_hp_label.visible = false
+		return
+	if _hp_label == null:
+		_hp_label = Label3D.new()
+		_hp_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		_hp_label.no_depth_test = true
+		_hp_label.fixed_size = true
+		_hp_label.pixel_size = 0.004
+		_hp_label.font_size = 32
+		_hp_label.outline_size = 6
+		_hp_label.outline_modulate = Color(0, 0, 0, 1)
+		_hp_label.position = Vector3(0, 2.0, 0)
+		add_child(_hp_label)
+	_hp_label.visible = true
+	# Color tint by faction — raiders (player wins) yellow, friendlies red.
+	var col: Color = Color(1, 0.9, 0.4) if faction == "raider" else Color(0.6, 1, 0.6)
+	if hp < max_hp * 0.3:
+		col = Color(1, 0.3, 0.3)  # critical
+	_hp_label.modulate = col
+	_hp_label.text = "%d / %d" % [int(round(hp)), int(round(max_hp))]
 
 # Out-of-combat regen pump. Subclasses keep their own _physics_process
 # overrides; _process is unused there, so this base implementation runs
