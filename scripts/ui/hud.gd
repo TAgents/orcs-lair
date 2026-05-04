@@ -25,6 +25,11 @@ extends CanvasLayer
 @onready var vol_slider: HSlider = $Root/SettingsPanel/VolSlider
 @onready var fullscreen_check: CheckBox = $Root/SettingsPanel/FullscreenCheck
 @onready var btn_settings_back: Button = $Root/SettingsPanel/BackBtn
+@onready var btn_rebind: Button = $Root/SettingsPanel/RebindBtn
+@onready var rebind_panel: ColorRect = $Root/RebindPanel
+@onready var rebind_rows_root: VBoxContainer = $Root/RebindPanel/Scroll/RowsRoot
+@onready var btn_rebind_back: Button = $Root/RebindPanel/RBackBtn
+@onready var btn_rebind_reset: Button = $Root/RebindPanel/RResetBtn
 
 var _champion: Champion = null
 var _build_controller: BuildController = null
@@ -70,6 +75,9 @@ func _ready() -> void:
 	btn_settings_back.pressed.connect(_close_settings)
 	vol_slider.value_changed.connect(_on_volume_changed)
 	fullscreen_check.toggled.connect(_on_fullscreen_toggled)
+	btn_rebind.pressed.connect(_open_rebind)
+	btn_rebind_back.pressed.connect(_close_rebind)
+	btn_rebind_reset.pressed.connect(_reset_rebinds)
 	_load_settings()
 	# Hooks that fire the most useful toasts. Keep this set tight — too
 	# many is noise. Worker class_earned is wired per-worker on _ready
@@ -350,6 +358,17 @@ func _on_food_changed_for_toast(amount: int) -> void:
 const _HELP_FLAG_PATH: String = "user://help_seen.flag"
 
 func _unhandled_input(event: InputEvent) -> void:
+	# When listening for a rebind, the next key event captures the binding
+	# and is consumed before any other handler sees it.
+	if _rebind_listening_action != "":
+		if event is InputEventKey and event.pressed and not event.echo:
+			var k := event as InputEventKey
+			if k.keycode == KEY_ESCAPE or k.physical_keycode == KEY_ESCAPE:
+				_cancel_rebind()
+			else:
+				_apply_rebind(_rebind_listening_action, k.physical_keycode)
+			get_viewport().set_input_as_handled()
+		return
 	if event.is_action_pressed("help_toggle"):
 		help_overlay.visible = not help_overlay.visible
 	elif event.is_action_pressed("pause_menu") and Game.mode != Game.Mode.BUILDING:
@@ -409,6 +428,7 @@ func _save_settings() -> void:
 	var data: Dictionary = {
 		"master_volume": vol_slider.value,
 		"fullscreen": fullscreen_check.button_pressed,
+		"key_overrides": _key_overrides,
 	}
 	var f := FileAccess.open(_SETTINGS_PATH, FileAccess.WRITE)
 	if f != null:
@@ -432,6 +452,12 @@ func _load_settings() -> void:
 	fullscreen_check.button_pressed = bool(d.get("fullscreen", false))
 	_apply_volume(vol_slider.value)
 	_apply_fullscreen(fullscreen_check.button_pressed)
+	var raw_overrides: Variant = d.get("key_overrides", {})
+	if typeof(raw_overrides) == TYPE_DICTIONARY:
+		_key_overrides.clear()
+		for k in (raw_overrides as Dictionary):
+			_key_overrides[String(k)] = int((raw_overrides as Dictionary)[k])
+		_apply_all_overrides()
 
 func _help_seen() -> bool:
 	return FileAccess.file_exists(_HELP_FLAG_PATH)
@@ -465,3 +491,121 @@ func _build_help_text() -> String:
 		"   U / I / O    spend STR / VIT / AGI attribute point\n\n" + \
 		"GOAL: survive 30 days. Build a Kitchen by ~day 5 or your\n" + \
 		"workers will desert from hunger."
+
+# --- Key rebind UI ----------------------------------------------------------
+#
+# Exposes the user-facing actions in a scrollable panel. Click a row's key
+# button → next physical key replaces the binding. Only single-key (no chord)
+# overrides are supported — matches the game's flat keymap. Overrides persist
+# in user://settings.json under "key_overrides" (action_name → physical_keycode)
+# and are reapplied via InputMap on HUD load.
+#
+# Mouse buttons (LMB place, RMB demolish) and the system-reserved Esc/Tab keys
+# stay hardcoded; remapping those would break BUILD mode + possess flow.
+
+const _REBINDABLE_ACTIONS: Array[Array] = [
+	["move_forward",     "Move forward"],
+	["move_back",        "Move back"],
+	["move_left",        "Strafe left"],
+	["move_right",       "Strafe right"],
+	["attack",           "Attack"],
+	["dodge",            "Dodge"],
+	["skill_cleave",     "Cleave"],
+	["skill_charge",     "Charge"],
+	["skill_roar",       "Roar"],
+	["build_toggle",     "Build mode"],
+	["world_map_toggle", "World map"],
+	["attr_str",         "Spend STR"],
+	["attr_vit",         "Spend VIT"],
+	["attr_agi",         "Spend AGI"],
+	["restart_scene",    "Restart"],
+	["help_toggle",      "Help overlay"],
+	["quick_save",       "Quick save"],
+	["quick_load",       "Quick load"],
+]
+
+var _key_overrides: Dictionary = {}
+var _rebind_listening_action: String = ""
+var _rebind_buttons: Dictionary = {}
+
+func _open_rebind() -> void:
+	settings_panel.visible = false
+	rebind_panel.visible = true
+	_build_rebind_rows()
+
+func _close_rebind() -> void:
+	_cancel_rebind()
+	rebind_panel.visible = false
+	settings_panel.visible = true
+
+func _build_rebind_rows() -> void:
+	for c in rebind_rows_root.get_children():
+		c.queue_free()
+	_rebind_buttons.clear()
+	for entry in _REBINDABLE_ACTIONS:
+		var action: String = entry[0]
+		var label_text: String = entry[1]
+		var row := HBoxContainer.new()
+		row.custom_minimum_size = Vector2(0, 32)
+		var name_lbl := Label.new()
+		name_lbl.text = label_text
+		name_lbl.custom_minimum_size = Vector2(220, 0)
+		name_lbl.add_theme_font_size_override("font_size", 14)
+		row.add_child(name_lbl)
+		var btn := Button.new()
+		btn.custom_minimum_size = Vector2(180, 0)
+		btn.text = _binding_text(action)
+		btn.pressed.connect(_listen_for_action.bind(action))
+		row.add_child(btn)
+		rebind_rows_root.add_child(row)
+		_rebind_buttons[action] = btn
+
+func _listen_for_action(action: String) -> void:
+	_cancel_rebind()
+	_rebind_listening_action = action
+	if _rebind_buttons.has(action):
+		(_rebind_buttons[action] as Button).text = "press a key…"
+
+func _cancel_rebind() -> void:
+	if _rebind_listening_action != "" and _rebind_buttons.has(_rebind_listening_action):
+		(_rebind_buttons[_rebind_listening_action] as Button).text = _binding_text(_rebind_listening_action)
+	_rebind_listening_action = ""
+
+func _apply_rebind(action: String, physical_keycode: int) -> void:
+	_key_overrides[action] = physical_keycode
+	_apply_override(action, physical_keycode)
+	_rebind_listening_action = ""
+	if _rebind_buttons.has(action):
+		(_rebind_buttons[action] as Button).text = _binding_text(action)
+	_save_settings()
+
+func _apply_override(action: String, physical_keycode: int) -> void:
+	if not InputMap.has_action(action):
+		return
+	InputMap.action_erase_events(action)
+	var ev := InputEventKey.new()
+	ev.physical_keycode = physical_keycode
+	InputMap.action_add_event(action, ev)
+
+func _apply_all_overrides() -> void:
+	for k in _key_overrides:
+		_apply_override(String(k), int(_key_overrides[k]))
+
+func _reset_rebinds() -> void:
+	_cancel_rebind()
+	# Reload defaults from project.godot by reapplying stock InputMap entries
+	# captured at game start. Easiest path: just clear overrides, save, and
+	# reload the scene — the InputMap restores from the project on next load.
+	_key_overrides.clear()
+	_save_settings()
+	get_tree().reload_current_scene()
+
+func _binding_text(action: String) -> String:
+	if not InputMap.has_action(action):
+		return "—"
+	for ev in InputMap.action_get_events(action):
+		if ev is InputEventKey:
+			var k := ev as InputEventKey
+			var code: int = k.physical_keycode if k.physical_keycode != 0 else k.keycode
+			return OS.get_keycode_string(code)
+	return "—"
