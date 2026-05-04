@@ -48,9 +48,14 @@ func _resolve(stream_name: String) -> AudioStream:
 				var s: AudioStream = load(path)
 				_streams[stream_name] = s
 				return s
+	# No .wav file — synthesize a placeholder tone so the game ships
+	# with audible feedback. Drop a .wav into assets/audio/ to override.
+	var synth: AudioStream = _synth(stream_name)
+	if synth != null:
+		_streams[stream_name] = synth
+		return synth
 	if not _missing_warned.has(stream_name):
 		_missing_warned[stream_name] = true
-		# print so it surfaces in stdout but doesn't spam.
 		print("[audio] missing stream: %s (drop a .wav into assets/audio/)" % stream_name)
 	_streams[stream_name] = null
 	return null
@@ -111,3 +116,80 @@ func _on_chest_looted(_chest: Node, _gold: int, _items: Array) -> void:
 
 func _on_raid_started() -> void:
 	play("raid_alarm")
+
+# --- Procedural synth fallback ----------------------------------------------
+#
+# Generates a short AudioStreamWAV when no .wav file exists for the given
+# name. Each known event gets a distinctive tone shape: melee swing is a
+# downward sine sweep, hit is a noise burst, loot is a rising chirp, etc.
+# These are deliberately rough — drop CC0 .wav files into assets/audio/
+# to override.
+
+const _SYNTH_RATE: int = 22050
+
+func _synth(stream_name: String) -> AudioStream:
+	var seconds: float = 0.0
+	match stream_name:
+		"swing":      seconds = 0.18
+		"hit":        seconds = 0.12
+		"loot":       seconds = 0.20
+		"level_up":   seconds = 0.45
+		"day_chime":  seconds = 0.55
+		"raid_alarm": seconds = 0.40
+		"treasure":   seconds = 0.30
+		_:
+			return null
+	var n: int = int(seconds * float(_SYNTH_RATE))
+	var pcm := PackedByteArray()
+	pcm.resize(n * 2)
+	for i in n:
+		var t: float = float(i) / float(_SYNTH_RATE)
+		var sample: float = _synth_sample(stream_name, t, seconds)
+		var s16: int = clampi(int(clampf(sample, -1.0, 1.0) * 32767.0), -32768, 32767)
+		pcm.encode_s16(i * 2, s16)
+	var stream := AudioStreamWAV.new()
+	stream.format = AudioStreamWAV.FORMAT_16_BITS
+	stream.mix_rate = _SYNTH_RATE
+	stream.stereo = false
+	stream.data = pcm
+	return stream
+
+func _synth_sample(stream_name: String, t: float, dur: float) -> float:
+	var u: float = clampf(t / max(dur, 0.0001), 0.0, 1.0)
+	var env_out: float = clampf(1.0 - u, 0.0, 1.0)         # linear release
+	var env_attack: float = clampf(t / 0.01, 0.0, 1.0)      # 10 ms attack
+	match stream_name:
+		"swing":
+			# Downward sine sweep — 800 → 200 Hz, fast release.
+			var freq: float = lerpf(800.0, 200.0, u)
+			return sin(t * TAU * freq) * env_out * 0.45 * env_attack
+		"hit":
+			# Noise burst with sharp release.
+			return (randf() * 2.0 - 1.0) * pow(env_out, 2.5) * 0.55
+		"loot":
+			# Up-chirp 600 → 1100 Hz.
+			var freq2: float = lerpf(600.0, 1100.0, u)
+			return sin(t * TAU * freq2) * env_out * 0.40 * env_attack
+		"level_up":
+			# Three-tone arpeggio C5 / E5 / G5 (~523 / 659 / 784 Hz).
+			var step_dur: float = dur / 3.0
+			var idx: int = clampi(int(t / step_dur), 0, 2)
+			var freqs: Array[float] = [523.0, 659.0, 784.0]
+			var local_t: float = fmod(t, step_dur)
+			var local_env: float = clampf(1.0 - (local_t / step_dur), 0.0, 1.0)
+			return sin(local_t * TAU * freqs[idx]) * local_env * 0.40
+		"day_chime":
+			# Soft 440 Hz with slow bell envelope.
+			var bell: float = pow(env_out, 1.6)
+			return sin(t * TAU * 440.0) * bell * 0.35
+		"raid_alarm":
+			# Sawtooth 220 Hz with 8 Hz tremolo.
+			var saw: float = fmod(t * 220.0, 1.0) * 2.0 - 1.0
+			var trem: float = 0.5 + 0.5 * sin(t * TAU * 8.0)
+			return saw * trem * 0.5 * env_out
+		"treasure":
+			# Two-octave rising chord — pleasant pickup.
+			var f1: float = lerpf(440.0, 880.0, u)
+			var f2: float = lerpf(660.0, 1320.0, u)
+			return (sin(t * TAU * f1) + sin(t * TAU * f2)) * 0.20 * env_out
+	return 0.0
